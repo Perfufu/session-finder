@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Session Finder</title>
+<style>/*STYLE*/</style>
+</head>
+<body>
+  <!-- Visible text comes from STRINGS in app.js ([data-i18n*] attributes) -->
+  <main>
+    <section id="graph-wrap">
+      <div id="graph"></div>
+      <div id="tip" hidden></div>
+      <div id="legend">
+        <div><span class="lg-dir">&#xF07B;</span> <span data-i18n="legendFolder"></span></div>
+        <div><span class="lg-session"></span> <span data-i18n="legendSession"></span></div>
+        <div><span class="lg-running"></span> <span data-i18n="legendRunning"></span></div>
+      </div>
+    </section>
+    <aside id="panel">
+      <header>
+        <div class="title-row">
+          <div class="title">Session Finder <span id="count"></span></div>
+          <div class="title-actions">
+            <button id="palette" type="button"></button>
+            <button id="mode" type="button"></button>
+          </div>
+          <div id="palette-menu" role="menu" hidden></div>
+        </div>
+        <input id="search" type="text" data-i18n-placeholder="searchPlaceholder" autocomplete="off" spellcheck="false">
+        <div id="scope" hidden><span class="scope-path"></span><button type="button" data-i18n-title="removeFilter">✕</button></div>
+      </header>
+      <div id="list" role="listbox"></div>
+      <footer>
+        <span id="status"></span>
+        <span id="hint" data-i18n="hint"></span>
+      </footer>
+    </aside>
+  </main>
+  <script>/*VENDOR*/</script>
+  <script>/*DATA*/</script>
+  <script>/*APP*/</script>
+</body>
+</html>

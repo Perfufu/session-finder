@@ -1,0 +1,36 @@
+# Personal palette for Session Finder for Claude Code
+#
+# Put it in ~/.config/session-finder/palettes/<name>.toml: it then shows up in
+# the window's Palette menu (or use preset = "<name>" in the config).
+#
+# Colours as "#rrggbb". A missing or invalid colour is replaced with the
+# default palette's. This file only holds data: it is never executed.
+#
+# [dark] and [light] are both optional; with only one of them, the light/dark
+# toggle is hidden.
+
+name = "My palette"
+
+[dark]
+bg          = "#16181d"  # main background
+bg_alt      = "#1f232a"  # secondary background (list panel)
+bg_elevated = "#2b313b"  # folder nodes
+fg          = "#e6e8eb"  # main text
+fg_dim      = "#8b93a1"  # secondary text, old conversations
+accent      = "#8b9cf7"  # selection, recent conversations
+accent_alt  = "#c49af0"  # root node
+success     = "#7cc48a"  # open conversation (aura)
+warning     = "#e0b35c"  # warnings
+error       = "#ef7a85"  # errors
+
+[light]
+bg          = "#f6f7f9"
+bg_alt      = "#eceef2"
+bg_elevated = "#dde1e8"
+fg          = "#1d2129"
+fg_dim      = "#5f6773"
+accent      = "#4457d6"
+accent_alt  = "#8a4fc4"
+success     = "#2f8a46"
+warning     = "#a86b00"
+error       = "#c93445"

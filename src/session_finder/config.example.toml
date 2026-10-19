@@ -1,0 +1,40 @@
+# Session Finder for Claude Code — configuration
+#
+# Location: ~/.config/session-finder/config.toml
+# (created from this template by: session-finder --init-config)
+#
+# Everything is optional: a missing option keeps its default value, the one
+# written here. An invalid file is ignored (with a warning).
+
+[theme]
+# Colour palette:
+#   "default", "tokyo-night", "catppuccin", "nord", "gruvbox"  → built-in presets
+#   "<name>"       → your palette ~/.config/session-finder/palettes/<name>.toml
+#                    (create one with: session-finder --new-palette <name>)
+#   "palette-sh"   → colours read from a shell file (see [theme.palette_sh])
+# A choice made in the window (Palette menu) takes precedence over this value,
+# until "Back to config".
+preset = "default"
+
+# Light / dark: "auto" (follows the system setting), "dark" or "light".
+# Also changeable in the window. No effect on a single-variant palette.
+mode = "auto"
+
+# Translucent background. Only enable it if your compositor blurs what is
+# behind windows: otherwise text becomes hard to read.
+translucent = false
+
+[theme.palette_sh]
+# For preset = "palette-sh": a shell file defining BG, BG_ALT, BG_ELEVATED,
+# FG, FG_DIM, ACCENT, ACCENT_ALT, SUCCESS, WARNING, ERROR as "#rrggbb".
+# ⚠ This file is EXECUTED by bash: only point it to a file of your own.
+# "{active}" is replaced with the content of active_file (useful for a theme
+# system that writes the active theme's name to a file).
+path = ""
+active_file = ""
+
+[terminal]
+# Terminal used to reopen conversations. Empty = $TERMINAL variable, then the
+# first one found among: kitty, ghostty, foot, alacritty, wezterm,
+# gnome-terminal, konsole, xfce4-terminal, xterm.
+command = ""

@@ -1,0 +1,32 @@
+[project]
+name = "session-finder"
+version = "0.2.0"
+description = "Session Finder for Claude Code: find and resume your conversations, as a per-folder graph + search."
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Perfufu" }]
+requires-python = ">=3.11"  # tomllib (config reading)
+# Dependency-free core: index, config, themes and launchers only use the
+# standard library. The window engine is optional (see [qt] below, or the
+# system's pywebview + WebKitGTK).
+dependencies = []
+
+[project.optional-dependencies]
+# Self-contained window engine: pywebview + Qt WebEngine from PyPI, nothing to
+# compile, nothing to install with the system package manager (~300 MB).
+# PySide6 pinned to a release with some hindsight; bump deliberately.
+qt = ["pywebview>=6.2,<7", "QtPy>=2.4,<3", "PySide6==6.11.2"]
+
+[project.urls]
+Repository = "https://github.com/Perfufu/session-finder"
+
+[project.scripts]
+session-finder = "session_finder.cli:main"
+
+[dependency-groups]
+dev = ["pytest>=8"]
+
+[build-system]
+requires = ["uv_build>=0.13,<0.14"]
+build-backend = "uv_build"
