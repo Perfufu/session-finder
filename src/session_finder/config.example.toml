@@ -8,7 +8,7 @@
 
 [theme]
 # Colour palette:
-#   "default", "tokyo-night", "catppuccin", "nord", "gruvbox"  → built-in presets
+#   "default", "red", "green", "yellow", "blue", "purple", "orange"  → built-in presets
 #   "<name>"       → your palette ~/.config/session-finder/palettes/<name>.toml
 #                    (create one with: session-finder --new-palette <name>)
 #   "palette-sh"   → colours read from a shell file (see [theme.palette_sh])

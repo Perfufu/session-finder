@@ -88,9 +88,9 @@ def test_personal_palettes_in_catalogue_and_config(tmp_path):
 
 # ---------- remembered choice (window) vs config ----------
 def test_remembered_choice_wins_over_config():
-    t = themes.resolve({"preset": "nord", "mode": "auto"}, state={"palette": "preset:gruvbox", "mode": "light"})
-    assert t["config_selected"] == "preset:nord"
-    assert t["selected"] == "preset:gruvbox" and t["mode"] == "light"
+    t = themes.resolve({"preset": "green", "mode": "auto"}, state={"palette": "preset:orange", "mode": "light"})
+    assert t["config_selected"] == "preset:green"
+    assert t["selected"] == "preset:orange" and t["mode"] == "light"
 
 
 def test_remembered_file_choice_and_stale_choice(tmp_path):
@@ -99,7 +99,7 @@ def test_remembered_file_choice_and_stale_choice(tmp_path):
     assert t["selected"] == f"file:{f}" and by_id(t, f"file:{f}")["palettes"]["dark"]["BG"] == "#222222"
     f.unlink()  # file gone since: back to the config, no error
     assert themes.resolve({"preset": "default"}, state={"palette": f"file:{f}"})["selected"] == "preset:default"
-    assert themes.resolve({"preset": "nord"}, state={"palette": "user:deleted"})["selected"] == "preset:nord"
+    assert themes.resolve({"preset": "green"}, state={"palette": "user:deleted"})["selected"] == "preset:green"
 
 
 # ---------- palette.sh (config only) ----------
@@ -142,9 +142,9 @@ def test_missing_config(tmp_path):
 
 def test_config_merge_and_types(tmp_path):
     f = write(tmp_path / "config.toml",
-              '[theme]\npreset = "nord"\ntranslucent = "yes"\nunknown = 1\n[terminal]\ncommand = "foot"\n')
+              '[theme]\npreset = "green"\ntranslucent = "yes"\nunknown = 1\n[terminal]\ncommand = "foot"\n')
     cfg = config.load(f)
-    assert cfg["theme"]["preset"] == "nord"
+    assert cfg["theme"]["preset"] == "green"
     assert cfg["theme"]["translucent"] is False  # wrong type: default kept
     assert "unknown" not in cfg["theme"]
     assert cfg["terminal"]["command"] == "foot"
@@ -158,9 +158,9 @@ def test_invalid_config(tmp_path):
 def test_init_config_creates_then_refuses_to_overwrite(xdg):
     assert cli.main(["--init-config"]) == 0
     assert config.config_path().read_text() == config.example("config.example.toml")
-    config.config_path().write_text('[theme]\npreset = "nord"\n')
+    config.config_path().write_text('[theme]\npreset = "green"\n')
     assert cli.main(["--init-config"]) == 1
-    assert config.config_path().read_text() == '[theme]\npreset = "nord"\n'
+    assert config.config_path().read_text() == '[theme]\npreset = "green"\n'
 
 
 def test_new_palette(xdg):
@@ -175,14 +175,14 @@ def test_new_palette(xdg):
 # ---------- remembered state ----------
 def test_remembered_choices_and_default_view(xdg):
     api = app.Api(terminal=None)
-    api.set_palette("preset:nord")
+    api.set_palette("preset:green")
     api.set_mode("light")
-    assert json.loads(app.state_path().read_text()) == {"palette": "preset:nord", "mode": "light"}
+    assert json.loads(app.state_path().read_text()) == {"palette": "preset:green", "mode": "light"}
     api.set_palette(None)  # back to the config
     assert json.loads(app.state_path().read_text()) == {"mode": "light"}
 
     default_view = app.Api(terminal=None, persist=False)  # --defaults: nothing is written
-    default_view.set_palette("preset:gruvbox")
+    default_view.set_palette("preset:orange")
     default_view.set_mode("dark")
     assert json.loads(app.state_path().read_text()) == {"mode": "light"}
 

@@ -238,7 +238,7 @@ function showTip(n, x, y) {
   if (!n) { tipEl.hidden = true; return; }
   tipEl.textContent = '';
   if (n.kind === 'dir') {
-    tipEl.append(el('div', 'tip-title', FOLDER + '  ' + short(n.path)),
+    tipEl.append((() => { const t = el('div', 'tip-title', ' ' + short(n.path)); t.prepend(el('span', 'folder-ico')); return t; })(),
                  el('div', 'tip-hint', `${T.conversations(n.count)} · ${T.folderTip}`));
   } else {
     tipEl.append(el('div', 'tip-title', n.s.title),
@@ -262,7 +262,8 @@ function clickNode(n) {
   select(n.s.id, { center: false });
 }
 
-const FOLDER = '\u{F07B}';   // nf-fa-folder (JetBrainsMono Nerd Font)
+// Folder icon drawn as a vector (16x16 box): no dependency on an installed icon font.
+const FOLDER_PATH = new Path2D('M1 3.5h5l1.5 1.7H15v7.8H1z');
 function drawNode(n, ctx, scale) {
   const h = n === hovered();
   const r = radius(n) * (h ? 1.15 : 1);
@@ -290,16 +291,13 @@ function drawNode(n, ctx, scale) {
     ctx.fill();
     ctx.shadowBlur = 0;
     ctx.lineWidth = 1.2 / scale; ctx.strokeStyle = rgba(P.FG, h ? 0.9 : 0.5); ctx.stroke();
-    // folder icon inside the node: clearly not a conversation.
-    // Centred on its real INK box (measureText), not on its font cell:
-    // Nerd Font glyphs have asymmetric margins inside their cell.
-    ctx.font = `${r * 1.05}px "JetBrainsMono Nerd Font"`;
-    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
-    const m = ctx.measureText(FOLDER);
-    ctx.fillStyle = rgba(P.FG, 0.85);
-    ctx.fillText(FOLDER,
-      n.x - (m.actualBoundingBoxRight - m.actualBoundingBoxLeft) / 2,
-      n.y + (m.actualBoundingBoxAscent - m.actualBoundingBoxDescent) / 2);
+    // folder icon inside the node: clearly not a conversation (16-unit path
+    // centred on the node, ~1.1 r wide)
+    const k = r * 1.1 / 16;
+    ctx.save();
+    ctx.translate(n.x - 8 * k, n.y - 8 * k); ctx.scale(k, k);
+    ctx.fillStyle = rgba(P.FG, 0.85); ctx.fill(FOLDER_PATH);
+    ctx.restore();
   } else {
     ctx.fillStyle = recency(n.s);
     ctx.fill();
@@ -440,7 +438,11 @@ searchEl.addEventListener('input', applyFilters);
 function setScope(path) {
   scope = path;
   scopeEl.hidden = !path;
-  if (path) scopeEl.querySelector('.scope-path').textContent = `${FOLDER}  ${short(path)}`;
+  if (path) {
+    const sp = scopeEl.querySelector('.scope-path');
+    sp.textContent = ' ' + short(path);
+    sp.prepend(el('span', 'folder-ico'));
+  }
   applyFilters();
 }
 scopeEl.querySelector('button').addEventListener('click', () => setScope(null));

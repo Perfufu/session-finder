@@ -13,7 +13,7 @@ uv pip install -e . pytest
 .venv/bin/session-finder --defaults   # a new user's view (writes nothing)
 .venv/bin/session-finder --engine qt  # force an engine (auto | gtk | qt)
 .venv/bin/session-finder --table      # quick check in the terminal (--all: hidden sessions)
-.venv/bin/pytest -q                   # 49 tests
+.venv/bin/pytest -q                   # 51 tests
 ```
 
 Testing the self-contained Qt engine like a user without system packages: a separate venv **without** `--system-site-packages` (e.g. `uv venv --python 3.13 /tmp/qtenv && VIRTUAL_ENV=/tmp/qtenv uv pip install -e ".[qt]"`).
@@ -25,7 +25,7 @@ Testing the self-contained Qt engine like a user without system packages: a sepa
 | `index.py` | **Read-only** scan of `<claude>/projects/*/*.jsonl` (`CLAUDE_CONFIG_DIR` honoured), cache `~/.cache/session-finder/` invalidated by (mtime, size) |
 | `config.py` | `~/.config/session-finder/config.toml` (defaults if missing/invalid); shipped templates copied, never overwriting |
 | `config.example.toml`, `palette.example.toml` | Commented templates (`--init-config`, `--new-palette NAME`); a test guarantees the config template = `DEFAULTS` |
-| `themes.py` | Palette catalogue: built-in `preset:*`, `user:*` (`palettes/*.toml`), `file:*` ("Other…"), `palette-sh` (config only); colours validated as `#rrggbb` |
+| `themes.py` | Palette catalogue: built-in `preset:*` (default + red/green/yellow/blue/purple/orange: shared neutral backgrounds, only the accent pair differs), `user:*` (`palettes/*.toml`), `file:*` ("Other…"), `palette-sh` (config only); colours validated as `#rrggbb` |
 | `launchers.py` | Terminal: config > `$TERMINAL` > detection (9 known, unknown = `-e`); fish handled |
 | `niri.py` | Optional (detected through `NIRI_SOCKET`): focus an already-open session, single instance |
 | `engines.py` | Window engine: `gtk` (system WebKitGTK) preferred when usable, else `qt` (bundled Qt WebEngine, extra `[qt]`); sets the Wayland app-id per toolkit |
@@ -55,6 +55,9 @@ Testing the self-contained Qt engine like a user without system packages: a sepa
 - **Personal palettes in TOML** (data only), Palette menu in the window with instant preview.
 - **Animations** kept as they are despite the CPU cost below.
 - **Opaque background by default**, translucent as an option.
+- **No icon-font glyph in the UI**: the folder icon is a vector (`FOLDER_PATH` Path2D in the graph, `.folder-ico` CSS mask in the DOM). A Nerd Font codepoint showed as an empty rectangle on machines without that font.
+- **Presets**: one neutral dark/light background shared by all, only `ACCENT`/`ACCENT_ALT` change (distinct character per preset); `green` moves `SUCCESS` to teal so open sessions stay distinguishable.
+- **uv install**: README documents `command -v uv || curl … astral.sh/uv/install.sh | sh` (no install script in the repo) + the `PATH` pitfall.
 
 ## Measured facts (dev laptop, Arch + niri)
 

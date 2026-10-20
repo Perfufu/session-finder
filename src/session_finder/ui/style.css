@@ -141,3 +141,11 @@ footer {
 .menu-sep { height: 1px; margin: 5px 4px; background: rgba(var(--fg-rgb), 0.1); }
 .swatches { display: flex; gap: 3px; }
 .swatch { width: 10px; height: 10px; border-radius: 50%; border: 1px solid rgba(var(--fg-rgb), 0.25); }
+
+/* vector folder icon (same shape as FOLDER_PATH in app.js) */
+.folder-ico {
+  display: inline-block; width: 1.1em; height: 1.1em; vertical-align: -0.15em;
+  background: currentColor;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M1 3.5h5l1.5 1.7H15v7.8H1z'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M1 3.5h5l1.5 1.7H15v7.8H1z'/%3E%3C/svg%3E") center / contain no-repeat;
+}

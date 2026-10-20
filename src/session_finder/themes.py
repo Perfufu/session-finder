@@ -26,8 +26,10 @@ def palette(bg, bg_alt, bg_elevated, fg, fg_dim, accent, accent_alt, success, wa
     return dict(zip(KEYS, [bg, bg_alt, bg_elevated, fg, fg_dim, accent, accent_alt, success, warning, error]))
 
 
-# Values taken from each theme's official palette (FG_DIM / BG_* sometimes picked
-# within the palette to keep secondary text readable).
+# Neutral dark/light backgrounds shared by every preset: only the accent pair
+# (ACCENT, ACCENT_ALT) changes, so each preset has a clearly distinct character.
+# "default" keeps the original blue-violet accent. SUCCESS is moved to teal in
+# "green" so that open conversations stay distinguishable from the accent.
 PRESETS = {
     "default": {
         "dark": palette("#16181d", "#1f232a", "#2b313b", "#e6e8eb", "#8b93a1",
@@ -35,33 +37,44 @@ PRESETS = {
         "light": palette("#f6f7f9", "#eceef2", "#dde1e8", "#1d2129", "#5f6773",
                          "#4457d6", "#8a4fc4", "#2f8a46", "#a86b00", "#c93445"),
     },
-    "tokyo-night": {  # Night / Day
-        "dark": palette("#1a1b26", "#24283b", "#414868", "#c0caf5", "#737aa2",
-                        "#7aa2f7", "#bb9af7", "#9ece6a", "#e0af68", "#f7768e"),
-        "light": palette("#e1e2e7", "#d0d5e3", "#c4c8da", "#3760bf", "#6172b0",
-                         "#2e7de9", "#9854f1", "#587539", "#8c6c3e", "#f52a65"),
+    "red": {
+        "dark": palette("#16181d", "#1f232a", "#2b313b", "#e6e8eb", "#8b93a1",
+                        "#f0707a", "#f4a07a", "#7cc48a", "#e0b35c", "#ef7a85"),
+        "light": palette("#f6f7f9", "#eceef2", "#dde1e8", "#1d2129", "#5f6773",
+                         "#c93445", "#b5562a", "#2f8a46", "#a86b00", "#c93445"),
     },
-    "catppuccin": {  # Mocha / Latte
-        "dark": palette("#1e1e2e", "#313244", "#45475a", "#cdd6f4", "#7f849c",
-                        "#89b4fa", "#cba6f7", "#a6e3a1", "#f9e2af", "#f38ba8"),
-        "light": palette("#eff1f5", "#ccd0da", "#bcc0cc", "#4c4f69", "#8c8fa1",
-                         "#1e66f5", "#8839ef", "#40a02b", "#df8e1d", "#d20f39"),
+    "green": {
+        "dark": palette("#16181d", "#1f232a", "#2b313b", "#e6e8eb", "#8b93a1",
+                        "#6fcf8a", "#a6d96a", "#5fd1c0", "#e0b35c", "#ef7a85"),
+        "light": palette("#f6f7f9", "#eceef2", "#dde1e8", "#1d2129", "#5f6773",
+                         "#1f8a45", "#5f8a1f", "#14857a", "#a86b00", "#c93445"),
     },
-    "nord": {  # Polar Night / Snow Storm
-        "dark": palette("#2e3440", "#3b4252", "#434c5e", "#eceff4", "#8f9bb3",
-                        "#88c0d0", "#b48ead", "#a3be8c", "#ebcb8b", "#bf616a"),
-        "light": palette("#eceff4", "#e5e9f0", "#d8dee9", "#2e3440", "#4c566a",
-                         "#5e81ac", "#b48ead", "#8fbcbb", "#d08770", "#bf616a"),
+    "yellow": {
+        "dark": palette("#16181d", "#1f232a", "#2b313b", "#e6e8eb", "#8b93a1",
+                        "#e8c14f", "#e89f4f", "#7cc48a", "#e0b35c", "#ef7a85"),
+        "light": palette("#f6f7f9", "#eceef2", "#dde1e8", "#1d2129", "#5f6773",
+                         "#946a00", "#a8501a", "#2f8a46", "#a86b00", "#c93445"),
     },
-    "gruvbox": {
-        "dark": palette("#282828", "#3c3836", "#504945", "#ebdbb2", "#a89984",
-                        "#83a598", "#d3869b", "#b8bb26", "#fabd2f", "#fb4934"),
-        "light": palette("#fbf1c7", "#ebdbb2", "#d5c4a1", "#3c3836", "#7c6f64",
-                         "#076678", "#8f3f71", "#79740e", "#b57614", "#9d0006"),
+    "blue": {
+        "dark": palette("#16181d", "#1f232a", "#2b313b", "#e6e8eb", "#8b93a1",
+                        "#6aa8f5", "#5ccfe0", "#7cc48a", "#e0b35c", "#ef7a85"),
+        "light": palette("#f6f7f9", "#eceef2", "#dde1e8", "#1d2129", "#5f6773",
+                         "#1e66d0", "#0e8aa0", "#2f8a46", "#a86b00", "#c93445"),
+    },
+    "purple": {
+        "dark": palette("#16181d", "#1f232a", "#2b313b", "#e6e8eb", "#8b93a1",
+                        "#b18af0", "#e08ad0", "#7cc48a", "#e0b35c", "#ef7a85"),
+        "light": palette("#f6f7f9", "#eceef2", "#dde1e8", "#1d2129", "#5f6773",
+                         "#7a3fc4", "#b03f98", "#2f8a46", "#a86b00", "#c93445"),
+    },
+    "orange": {
+        "dark": palette("#16181d", "#1f232a", "#2b313b", "#e6e8eb", "#8b93a1",
+                        "#e8845a", "#f0b07a", "#7cc48a", "#e0b35c", "#ef7a85"),
+        "light": palette("#f6f7f9", "#eceef2", "#dde1e8", "#1d2129", "#5f6773",
+                         "#c2562a", "#a8731a", "#2f8a46", "#a86b00", "#c93445"),
     },
 }
-PRESET_NAMES = {"default": "Default", "tokyo-night": "Tokyo Night", "catppuccin": "Catppuccin",
-                "nord": "Nord", "gruvbox": "Gruvbox"}
+PRESET_NAMES = {"default": "Default", "red": "Red", "green": "Green", "yellow": "Yellow", "blue": "Blue", "purple": "Purple", "orange": "Orange"}
 
 
 def luminance(hex_color):

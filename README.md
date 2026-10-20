@@ -21,14 +21,20 @@ Everything stays local. Session Finder **reads** Claude Code's folder (`~/.claud
 
 ## Installation (Linux)
 
-Needs [uv](https://docs.astral.sh/uv/). Two window engines, picked automatically:
+Needs [uv](https://docs.astral.sh/uv/) (step 1 below installs it if you don't have it). Two window engines, picked automatically:
 
 ### Self-contained (any distro, any window manager)
 
 ```sh
+# 1. uv, only if missing (official installer, installs to ~/.local/bin)
+command -v uv >/dev/null || curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# 2. Session Finder
 uv tool install "session-finder[qt] @ git+https://github.com/Perfufu/session-finder"
 session-finder
 ```
+
+If `uv` is still "not found" right after installing it, open a new terminal (or `export PATH="$HOME/.local/bin:$PATH"`): its install directory was not yet in your `PATH`.
 
 Brings its own Python and Qt WebEngine: nothing to install with your package manager, nothing to compile, no browser. About 650 MB once installed (~140 MB download). Requires glibc ≥ 2.34 (Debian 12+, Ubuntu 22.04+, Fedora 35+, Arch…).
 
@@ -79,7 +85,7 @@ Every option is explained in it: palette, light/dark, translucent background, te
 
 The window's **Palette** menu offers:
 
-- the **presets**: Default, Tokyo Night, Catppuccin, Nord, Gruvbox (each in light and dark — ◐ button next to it);
+- the **presets**: Default, Red, Green, Yellow, Blue, Purple, Orange — same neutral backgrounds, only the accent changes (each in light and dark — ◐ button next to it);
 - **your palettes**, dropped in `~/.config/session-finder/palettes/`;
 - **Other…**: open a `.toml` palette file from anywhere.
 
