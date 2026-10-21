@@ -1,7 +1,9 @@
 """Entry point of the `session-finder` command."""
 import argparse
 import json
+import os
 import re
+import shutil
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -9,6 +11,15 @@ from pathlib import Path
 from . import __version__, config, engines, index
 
 PALETTE_NAME = re.compile(r"^[A-Za-z0-9_-]+$")  # no "/" nor "..": stays inside palettes/
+
+
+def desktop_exec():
+    """Absolute path of this command, quoted as the .desktop spec requires."""
+    exe = Path(sys.argv[0])
+    exe = os.path.abspath(exe) if exe.name == "session-finder" else shutil.which("session-finder")
+    if exe is None:
+        return None
+    return '"' + exe.replace("\\", "\\\\").replace('"', '\\"') + '"' if " " in exe else exe
 
 
 def short(path):
@@ -56,6 +67,8 @@ def main(argv=None):
                         help="create ~/.config/session-finder/config.toml from the commented template")
     parser.add_argument("--new-palette", metavar="NAME",
                         help="create a personal palette ~/.config/session-finder/palettes/NAME.toml from the template")
+    parser.add_argument("--install-desktop", action="store_true",
+                        help="add Session Finder to your application launcher (~/.local/share/applications/session-finder.desktop)")
     parser.add_argument("--debug", action="store_true", help="window with developer tools")
     parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
     args = parser.parse_args(argv)
@@ -70,6 +83,16 @@ def main(argv=None):
                 target, "palette.example.toml", {'name = "My palette"': f'name = "{args.new_palette}"'})
         else:
             ok, message = config.create_from_example(config.config_path(), "config.example.toml")
+        print(f"session-finder: {message}", file=sys.stdout if ok else sys.stderr)
+        return 0 if ok else 1
+
+    if args.install_desktop:
+        exe = desktop_exec()
+        if exe is None:
+            print("session-finder: cannot find the session-finder command (is it in your PATH?)", file=sys.stderr)
+            return 1
+        ok, message = config.create_from_example(
+            config.applications_dir() / "session-finder.desktop", "session-finder.desktop", {"@EXEC@": exe})
         print(f"session-finder: {message}", file=sys.stdout if ok else sys.stderr)
         return 0 if ok else 1
 

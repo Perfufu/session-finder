@@ -1,0 +1,13 @@
+[Desktop Entry]
+Type=Application
+Name=Session Finder
+GenericName=Claude Code sessions
+Comment=Find and resume your Claude Code conversations
+# Absolute path filled in by `session-finder --install-desktop`: launchers often
+# have a PATH without ~/.local/bin, where `uv tool install` puts the command.
+Exec=@EXEC@
+Terminal=false
+Categories=Utility;
+Keywords=claude;session;conversation;resume;
+# Must equal the window's app-id (APP_ID in app.py): links the window to this entry
+StartupWMClass=session-finder

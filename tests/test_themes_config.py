@@ -163,6 +163,19 @@ def test_init_config_creates_then_refuses_to_overwrite(xdg):
     assert config.config_path().read_text() == '[theme]\npreset = "green"\n'
 
 
+def test_install_desktop_creates_then_refuses_to_overwrite(xdg, monkeypatch):
+    monkeypatch.setenv("XDG_DATA_HOME", str(xdg / "data"))
+    monkeypatch.setattr("sys.argv", ["/opt/my tools/session-finder"])
+    assert cli.main(["--install-desktop"]) == 0
+    target = config.applications_dir() / "session-finder.desktop"
+    text = target.read_text()
+    assert 'Exec="/opt/my tools/session-finder"' in text and "@EXEC@" not in text
+    assert "StartupWMClass=" + app.APP_ID in text
+    target.write_text("mine")
+    assert cli.main(["--install-desktop"]) == 1
+    assert target.read_text() == "mine"
+
+
 def test_new_palette(xdg):
     assert cli.main(["--new-palette", "my-palette"]) == 0
     t = themes.resolve(config.DEFAULTS["theme"], palettes_dir=config.palettes_dir())

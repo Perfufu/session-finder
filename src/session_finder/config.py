@@ -35,6 +35,11 @@ def palettes_dir():
     return config_dir() / "palettes"
 
 
+def applications_dir():
+    base = os.environ.get("XDG_DATA_HOME") or Path.home() / ".local" / "share"
+    return Path(base) / "applications"
+
+
 def warn(message):
     print(f"session-finder: {message}", file=sys.stderr)
 
