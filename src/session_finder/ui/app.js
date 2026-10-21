@@ -2,12 +2,13 @@
 // Data injected by app.py: sessions (index.py), theme (themes.py: palette
 // catalogue + current choice), home, can_focus (bring an open session's window
 // to the front: only under niri), defaults_view (default view, --defaults)
-const { sessions, theme, home, can_focus: canFocus, defaults_view: defaultsView } = window.__DATA__;
+const { sessions, theme, home, can_focus: canFocus, defaults_view: defaultsView, language } = window.__DATA__;
 let P;   // current palette, read on every graph frame
 
 // ---------- user-facing text ----------
 // Every string shown to the user lives here (plus [data-i18n] elements of
-// index.html, filled at startup): a translation = one more object in STRINGS.
+// index.html, filled at startup): a translation = one more object in STRINGS
+// (+ its code in config.LANGUAGES).
 const STRINGS = {
   en: {
     locale: 'en-GB',
@@ -46,8 +47,46 @@ const STRINGS = {
     errorClose: 'Close',
     errorContinue: 'Continue',
   },
+  fr: {
+    locale: 'fr-FR',
+    searchPlaceholder: 'Rechercher… (titre, message, dossier)',
+    hint: '↑↓ choisir · Entrée reprendre · Échap ×2 fermer',
+    escAgain: 'Échap encore pour fermer',
+    legendFolder: 'dossier · clic : filtrer',
+    legendSession: 'conversation · double-clic : reprendre',
+    legendRunning: 'conversation ouverte',
+    removeFilter: 'Retirer le filtre',
+    justNow: 'à l’instant',
+    minutesAgo: n => `il y a ${n} min`,
+    hoursAgo: n => `il y a ${n} h`,
+    yesterday: 'hier',
+    daysAgo: n => `il y a ${n} jours`,
+    conversations: n => `${n} conversation${n > 1 ? 's' : ''}`,
+    folderTip: 'clic : filtrer',
+    sessionTip: running => `clic : sélectionner · double-clic : ${running ? 'y aller' : 'reprendre'}`,
+    openElsewhereTip: 'clic : sélectionner · déjà ouverte ailleurs',
+    open: 'ouverte',
+    noMatch: 'Aucune conversation ne correspond.',
+    resume: 'Reprendre',
+    goToWindow: 'Aller à la fenêtre',
+    folderMissing: 'Dossier introuvable',
+    folderMissingTag: '⚠ dossier introuvable',
+    openElsewhere: 'Déjà ouverte ailleurs',
+    modes: { auto: '◐ auto', dark: '☾ sombre', light: '☀ clair' },
+    modeTitle: 'Clair / sombre : cliquer pour changer',
+    paletteTitle: 'Palette de couleurs',
+    otherPalette: 'Autre… (choisir un fichier .toml)',
+    backToConfig: name => `↺ Revenir à la config (${name})`,
+    errorTitle: 'Session Finder a rencontré un problème',
+    errorLoad: 'L’interface n’a pas pu démarrer.',
+    errorLater: 'Si rien ne semble anormal, vous pouvez continuer à l’utiliser.',
+    errorClose: 'Fermer',
+    errorContinue: 'Continuer',
+  },
 };
-const T = STRINGS.en;
+// Language chosen by Python (config / system locale); a key missing from a translation falls back to English
+const T = { ...STRINGS.en, ...STRINGS[language] };
+document.documentElement.lang = language;
 for (const node of document.querySelectorAll('[data-i18n]')) node.textContent = T[node.dataset.i18n];
 for (const node of document.querySelectorAll('[data-i18n-placeholder]')) node.placeholder = T[node.dataset.i18nPlaceholder];
 for (const node of document.querySelectorAll('[data-i18n-title]')) node.title = T[node.dataset.i18nTitle];

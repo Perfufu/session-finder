@@ -6,6 +6,11 @@
 # Everything is optional: a missing option keeps its default value, the one
 # written here. An invalid file is ignored (with a warning).
 
+[ui]
+# Interface language: "auto" (system locale: LC_ALL, LC_MESSAGES, then LANG),
+# "en" or "fr". An unsupported locale falls back to English.
+language = "auto"
+
 [theme]
 # Colour palette:
 #   "default", "red", "green", "yellow", "blue", "purple", "orange"  → built-in presets

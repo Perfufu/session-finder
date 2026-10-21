@@ -155,7 +155,8 @@ def run(engine, debug=False, defaults=False):
     terminal = launchers.find_terminal(cfg["terminal"]["command"])
 
     data = {"sessions": index.build_index(), "theme": theme, "defaults_view": defaults,
-            "home": str(Path.home()), "can_focus": niri.available()}
+            "home": str(Path.home()), "can_focus": niri.available(),
+            "language": config.resolve_language(cfg["ui"]["language"])}
 
     engines.prepare(engine, APP_ID)
     import webview

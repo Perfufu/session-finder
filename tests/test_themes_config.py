@@ -163,6 +163,22 @@ def test_init_config_creates_then_refuses_to_overwrite(xdg):
     assert config.config_path().read_text() == '[theme]\npreset = "green"\n'
 
 
+@pytest.mark.parametrize("setting, env, expected", [
+    ("auto", {"LANG": "fr_FR.UTF-8"}, "fr"),
+    ("auto", {"LANG": "en_US.UTF-8", "LC_ALL": "fr_CA.UTF-8"}, "fr"),   # LC_ALL wins
+    ("auto", {"LANG": "fr_FR.UTF-8", "LC_MESSAGES": "en_GB.UTF-8"}, "en"),
+    ("auto", {"LANG": "de_DE.UTF-8"}, "en"),   # unsupported
+    ("auto", {}, "en"),
+    ("auto", {"LANG": "C"}, "en"),
+    ("fr", {"LANG": "en_US.UTF-8"}, "fr"),   # explicit choice beats the system
+    ("FR", {}, "fr"),
+    ("klingon", {"LANG": "fr_FR.UTF-8"}, "en"),
+    (42, {}, "en"),
+])
+def test_resolve_language(setting, env, expected):
+    assert config.resolve_language(setting, env) == expected
+
+
 def test_install_desktop_creates_then_refuses_to_overwrite(xdg, monkeypatch):
     monkeypatch.setenv("XDG_DATA_HOME", str(xdg / "data"))
     monkeypatch.setattr("sys.argv", ["/opt/my tools/session-finder"])

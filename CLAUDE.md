@@ -13,7 +13,7 @@ uv pip install -e . pytest
 .venv/bin/session-finder --defaults   # a new user's view (writes nothing)
 .venv/bin/session-finder --engine qt  # force an engine (auto | gtk | qt)
 .venv/bin/session-finder --table      # quick check in the terminal (--all: hidden sessions)
-.venv/bin/pytest -q                   # 55 tests
+.venv/bin/pytest -q                   # 66 tests
 ```
 
 Testing the self-contained Qt engine like a user without system packages: a separate venv **without** `--system-site-packages` (e.g. `uv venv --python 3.13 /tmp/qtenv && VIRTUAL_ENV=/tmp/qtenv uv pip install -e ".[qt]"`).
@@ -23,7 +23,7 @@ Testing the self-contained Qt engine like a user without system packages: a sepa
 | File | Role |
 |---|---|
 | `index.py` | **Read-only** scan of `<claude>/projects/*/*.jsonl` (`CLAUDE_CONFIG_DIR` honoured), cache `~/.cache/session-finder/` invalidated by (mtime, size) |
-| `config.py` | `~/.config/session-finder/config.toml` (defaults if missing/invalid); shipped templates copied, never overwriting |
+| `config.py` | `~/.config/session-finder/config.toml` (defaults if missing/invalid); shipped templates copied, never overwriting; `LANGUAGES` + `resolve_language` |
 | `session-finder.desktop`, `session-finder.svg` | Launcher entry template + icon (default dark preset colours, installed under `~/.local/share/icons/hicolor/scalable/apps/`) (`@EXEC@` filled in by `--install-desktop`: absolute path, since launchers often lack `~/.local/bin`); `StartupWMClass` must equal `APP_ID` |
 | `config.example.toml`, `palette.example.toml` | Commented templates (`--init-config`, `--new-palette NAME`); a test guarantees the config template = `DEFAULTS` |
 | `themes.py` | Palette catalogue: built-in `preset:*` (default + red/green/yellow/blue/purple/orange: shared neutral backgrounds, only the accent pair differs), `user:*` (`palettes/*.toml`), `file:*` ("Other…"), `palette-sh` (config only); colours validated as `#rrggbb` |
@@ -59,6 +59,7 @@ Testing the self-contained Qt engine like a user without system packages: a sepa
 - **No icon-font glyph in the UI**: the folder icon is a vector (`FOLDER_PATH` Path2D in the graph, `.folder-ico` CSS mask in the DOM). A Nerd Font codepoint showed as an empty rectangle on machines without that font.
 - **Presets**: one neutral dark/light background shared by all, only `ACCENT`/`ACCENT_ALT` change (distinct character per preset); `green` moves `SUCCESS` to teal so open sessions stay distinguishable.
 - **uv install**: README documents `command -v uv || curl … astral.sh/uv/install.sh | sh` (no install script in the repo) + the `PATH` pitfall.
+- **Languages**: `[ui] language` = `auto` (system locale: `LC_ALL` > `LC_MESSAGES` > `LANG`, English if unsupported) / `en` / `fr`, resolved in Python (testable) and passed as `data.language`. No in-window switch (rarely changed, one less state). `T = {...STRINGS.en, ...STRINGS[language]}`: a missing key falls back to English. Python/CLI messages stay English. A test keeps `STRINGS` languages = `config.LANGUAGES` and every translation's keys (and function-ness) = English's.
 - **JS safety net**: a tiny inline script in `index.html` (separate from `app.js`, since a syntax error there runs none of its code) catches `error` / `unhandledrejection` and shows an English popup with message + stack (fallback `file:line:col`: the stack can be empty). Only the first error is shown. Before `app.js` has finished (`window.__appReady` set on its last line) = **Close only** (nothing usable); afterwards = **Close / Continue** (the error may be harmless; after Continue, silence). Popup text lives in `STRINGS` with an identical English fallback inline (a test keeps them in sync). `tests/test_ui.py` runs `node --check` on `app.js` and the inline scripts (skipped without `node`).
 
 ## Measured facts (dev laptop, Arch + niri)
@@ -76,7 +77,7 @@ Public repository: https://github.com/Perfufu/session-finder (MIT). Before each 
 
 1. ~~`.desktop` file~~ — **done** (`--install-desktop`, user-level, never overwrites).
 2. **Defensive reading**: record the Claude Code versions tested (`version` field of `.jsonl` lines); discreet warning if a newer version gives inconsistent results.
-3. **French translation**: `STRINGS.fr` in `app.js` + language choice (config / system locale); Python messages to wrap if needed.
+3. ~~French translation~~ — **done**, see Decisions.
 4. **Idea — other AI tools as "sources"**: only `index.py` (reading `~/.claude`) and the resume command (`claude --resume`) are specific to Claude Code; graph, list, search, palettes and terminal launchers are not. Supporting another CLI tool (Dust CLI, console ChatGPT clients…) = a source interface: list its conversations (id, folder, title, dates, running state) + the command that resumes one. The "for Claude Code" name would then become too narrow.
 5. ~~JS safety net~~ — **done**, see Decisions.
 6. **Open question — launcher entry discoverability**: `--install-desktop` is one explicit command (a wheel cannot write to `~/.local/share`, `uv tool upgrade` runs no hook). Option under consideration: a discreet startup hint when the entry is missing (more discoverable, but chattier, needs a way to silence it). **Pending feedback from the target users** (colleagues, friends) — decide after that.

@@ -36,5 +36,27 @@ def test_error_handler_fallback_matches_strings():
     pkg = resources.files("session_finder")
     html, app = (pkg / "ui/index.html").read_text(), (pkg / "ui/app.js").read_text()
     fallback = dict(re.findall(r"(error\w+): '([^']*)'", html))
-    in_strings = dict(re.findall(r"(error\w+): '([^']*)'", app))
+    in_strings = dict(re.findall(r"(error\w+): '([^']*)'", strings_block(app, "en")))
     assert fallback and fallback == in_strings
+
+
+def strings_block(app_js, lang):
+    """Source text of one language object of STRINGS (top level: two-space indent)."""
+    m = re.search(rf"^  {lang}: \{{\n(.*?)^  \}},\n", app_js, re.S | re.M)
+    assert m, lang
+    return m.group(1)
+
+
+def string_keys(block):
+    # entries are written at four-space indent; function-valued ones contain "=>"
+    return {k: "=>" in v for k, v in re.findall(r"^    (\w+): (.*)$", block, re.M)}
+
+
+def test_translations_cover_the_same_keys_as_english():
+    from session_finder import config
+    app_js = (resources.files("session_finder") / "ui/app.js").read_text()
+    declared = re.findall(r"^  (\w+): \{$", app_js[app_js.index("const STRINGS"):], re.M)
+    assert tuple(declared) == config.LANGUAGES
+    en = string_keys(strings_block(app_js, "en"))
+    for lang in config.LANGUAGES:
+        assert string_keys(strings_block(app_js, lang)) == en, lang

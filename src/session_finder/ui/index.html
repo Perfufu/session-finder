@@ -39,7 +39,7 @@
   </main>
   <!-- Safety net, kept tiny and separate from app.js on purpose: a syntax error in app.js
        prevents any of its code from running, so the handler cannot live there.
-       Text: STRINGS (app.js) when it loaded, else the English fallback below. -->
+       Text: the chosen language (T, from app.js) when it loaded, else the English fallback below. -->
   <script>
   (() => {
     const FALLBACK = {
@@ -50,7 +50,7 @@
       errorContinue: 'Continue',
     };
     let shown = false;
-    const text = key => (typeof STRINGS !== 'undefined' && STRINGS.en[key]) || FALLBACK[key];
+    const text = key => (typeof T !== 'undefined' && T[key]) || FALLBACK[key];
     function report(message, stack) {
       if (shown) return;   // first error only: after "Continue" the user chose to go on
       shown = true;

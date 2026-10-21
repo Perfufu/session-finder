@@ -11,7 +11,10 @@ import tomllib
 from importlib import resources
 from pathlib import Path
 
+LANGUAGES = ("en", "fr")   # = the objects of STRINGS in ui/app.js (a test checks it)
+
 DEFAULTS = {
+    "ui": {"language": "auto"},
     "theme": {
         "preset": "default",
         "mode": "auto",
@@ -45,6 +48,16 @@ def applications_dir():
 
 def icons_dir():
     return data_dir() / "icons" / "hicolor" / "scalable" / "apps"
+
+
+def resolve_language(setting, env=None):
+    """"auto" = system locale (LC_ALL > LC_MESSAGES > LANG, e.g. fr_FR.UTF-8 → fr);
+    an unsupported or invalid value falls back to English."""
+    env = os.environ if env is None else env
+    if setting == "auto":
+        setting = next((env[k] for k in ("LC_ALL", "LC_MESSAGES", "LANG") if env.get(k)), "")
+    code = str(setting).replace("-", "_").split("_")[0].split(".")[0].lower()
+    return code if code in LANGUAGES else "en"
 
 
 def warn(message):

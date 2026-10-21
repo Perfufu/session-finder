@@ -102,8 +102,9 @@ Optional. To start from a commented template:
 session-finder --init-config      # creates ~/.config/session-finder/config.toml (never overwrites)
 ```
 
-Every option is explained in it: palette, light/dark, translucent background, terminal. A missing or invalid file never prevents anything from working (defaults + a warning).
+Every option is explained in it: language, palette, light/dark, translucent background, terminal. A missing or invalid file never prevents anything from working (defaults + a warning).
 
+- **Language**: `[ui] language` = `"auto"` (default: your system locale), `"en"` or `"fr"`. The window is translated; terminal messages (`--help`, errors) stay in English. Missing a language? A translation is one more object in `STRINGS` (top of `ui/app.js`) plus its code in `LANGUAGES` (`config.py`): pull requests welcome.
 - **Terminal**: `[terminal] command`, otherwise `$TERMINAL`, otherwise the first one found among kitty, ghostty, foot, alacritty, wezterm, gnome-terminal, konsole, xfce4-terminal, xterm.
 - **Translucent background**: only if your compositor blurs what is behind windows, otherwise text gets hard to read.
 
