@@ -38,6 +38,8 @@ If `uv` is still "not found" right after installing it, open a new terminal (or 
 
 Brings its own Python and Qt WebEngine: nothing to install with your package manager, nothing to compile, no browser. About 650 MB once installed (~140 MB download). Requires glibc ≥ 2.34 (Debian 12+, Ubuntu 22.04+, Fedora 35+, Arch…).
 
+**Updating**: `uv tool upgrade session-finder` (the tool lives in its own uv-managed environment, so your package manager won't touch it).
+
 ### System WebKitGTK (lighter, if you already have it)
 
 On Arch:
@@ -49,6 +51,8 @@ uv venv --system-site-packages --python /usr/bin/python3   # sees the system's p
 uv pip install -e .
 .venv/bin/session-finder
 ```
+
+To update this variant: `git pull` in the clone (the install is editable).
 
 With both available, GTK is preferred; `--engine qt` or `--engine gtk` forces one. Without any engine, the list is still available in the terminal: `session-finder --table`.
 
