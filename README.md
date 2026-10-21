@@ -150,7 +150,13 @@ uv pip install pytest && .venv/bin/pytest
 
 The tests use an entirely fictional Claude Code folder (`tests/conftest.py`).
 
+## Reporting a problem / feedback
+
+Something broken, confusing, or missing? [Open an issue](https://github.com/Perfufu/session-finder/issues/new/choose): there are templates for a bug report and for feedback / ideas. Short and rough is fine.
+
+For a bug, run `session-finder --report` and paste its output: versions, system, window engine, Claude Code version. It contains **no path and no conversation content** (it is worth a glance before pasting anyway). If an error popup showed up, include its text. `session-finder --debug` opens the window with developer tools.
+
 ## Known limitations
 
-- The conversation file format (`~/.claude/projects/*/*.jsonl`) is **internal to Claude Code and undocumented**: it is read defensively, but a Claude Code update may change it.
-- Linux only for now. The interface is in English; a French translation is planned.
+- The conversation file format (`~/.claude/projects/*/*.jsonl`) is **internal to Claude Code and undocumented**: it is read defensively, but a Claude Code update may change it. If sessions look wrong or missing after a Claude Code update, please [report it](#reporting-a-problem--feedback).
+- Linux only for now. The interface is available in English and French.

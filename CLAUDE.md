@@ -13,7 +13,7 @@ uv pip install -e . pytest
 .venv/bin/session-finder --defaults   # a new user's view (writes nothing)
 .venv/bin/session-finder --engine qt  # force an engine (auto | gtk | qt)
 .venv/bin/session-finder --table      # quick check in the terminal (--all: hidden sessions)
-.venv/bin/pytest -q                   # 66 tests
+.venv/bin/pytest -q                   # 68 tests
 ```
 
 Testing the self-contained Qt engine like a user without system packages: a separate venv **without** `--system-site-packages` (e.g. `uv venv --python 3.13 /tmp/qtenv && VIRTUAL_ENV=/tmp/qtenv uv pip install -e ".[qt]"`).
@@ -30,6 +30,7 @@ Testing the self-contained Qt engine like a user without system packages: a sepa
 | `launchers.py` | Terminal: config > `$TERMINAL` > detection (9 known, unknown = `-e`); fish handled |
 | `niri.py` | Optional (detected through `NIRI_SOCKET`): focus an already-open session, single instance |
 | `engines.py` | Window engine: `gtk` (system WebKitGTK) preferred when usable, else `qt` (bundled Qt WebEngine, extra `[qt]`); sets the Wayland app-id per toolkit |
+| `report.py` | `--report`: diagnostic block for bug reports (versions, system, engine, Claude Code version of the newest conversations); never a path or conversation content (a test checks it) |
 | `app.py` / `cli.py` | pywebview window (page assembled in memory, no server; state `~/.local/state/session-finder/`) / `session-finder` command |
 | `ui/`, `vendor/` | HTML/CSS/JS interface (no hard-coded colour; **all user-facing text in `STRINGS` at the top of `app.js`** + `data-i18n*` attributes) + bundled force-graph 1.51.4 (provenance: `vendor/README.md`) |
 
@@ -76,7 +77,7 @@ Testing the self-contained Qt engine like a user without system packages: a sepa
 Public repository: https://github.com/Perfufu/session-finder (MIT). Before each push, check that nothing personal is left (home paths, names, emails) and that `git add -n .` only lists intended files. Bug reports and merge requests are where details about other people's machines belong — not in this file.
 
 1. ~~`.desktop` file~~ — **done** (`--install-desktop`, user-level, never overwrites).
-2. **Defensive reading**: record the Claude Code versions tested (`version` field of `.jsonl` lines); discreet warning if a newer version gives inconsistent results.
+2. ~~Defensive reading~~ — **abandoned** (decision: no version-based warning). Idea was: warn when sessions written by a Claude Code version newer than the last tested one lack `cwd`/`timestamp`. Rejected because it needs a hard-coded "last tested version" constant that someone must bump on every release, with no automatic reminder: forgotten, the warning becomes wrong or silent. The reading is already defensive (truncated lines, missing fields: nothing crashes). Cheap fallback if ever wanted: warn on anomalies alone (answered sessions with no `cwd`/`timestamp`: 0 on 56 real sessions with 2.1.276/2.1.294), no version involved. Replaced by guidance for users to report problems: README section, `.github/ISSUE_TEMPLATE/`, `--report`.
 3. ~~French translation~~ — **done**, see Decisions.
 4. **Idea — other AI tools as "sources"**: only `index.py` (reading `~/.claude`) and the resume command (`claude --resume`) are specific to Claude Code; graph, list, search, palettes and terminal launchers are not. Supporting another CLI tool (Dust CLI, console ChatGPT clients…) = a source interface: list its conversations (id, folder, title, dates, running state) + the command that resumes one. The "for Claude Code" name would then become too narrow.
 5. ~~JS safety net~~ — **done**, see Decisions.
