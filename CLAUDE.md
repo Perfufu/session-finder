@@ -13,7 +13,7 @@ uv pip install -e . pytest
 .venv/bin/session-finder --defaults   # a new user's view (writes nothing)
 .venv/bin/session-finder --engine qt  # force an engine (auto | gtk | qt)
 .venv/bin/session-finder --table      # quick check in the terminal (--all: hidden sessions)
-.venv/bin/pytest -q                   # 68 tests
+.venv/bin/pytest -q                   # 69 tests
 ```
 
 Testing the self-contained Qt engine like a user without system packages: a separate venv **without** `--system-site-packages` (e.g. `uv venv --python 3.13 /tmp/qtenv && VIRTUAL_ENV=/tmp/qtenv uv pip install -e ".[qt]"`).
@@ -60,7 +60,7 @@ Testing the self-contained Qt engine like a user without system packages: a sepa
 - **No icon-font glyph in the UI**: the folder icon is a vector (`FOLDER_PATH` Path2D in the graph, `.folder-ico` CSS mask in the DOM). A Nerd Font codepoint showed as an empty rectangle on machines without that font.
 - **Presets**: one neutral dark/light background shared by all, only `ACCENT`/`ACCENT_ALT` change (distinct character per preset); `green` moves `SUCCESS` to teal so open sessions stay distinguishable.
 - **uv install**: README documents `command -v uv || curl … astral.sh/uv/install.sh | sh` (no install script in the repo) + the `PATH` pitfall.
-- **Languages**: `[ui] language` = `auto` (system locale: `LC_ALL` > `LC_MESSAGES` > `LANG`, English if unsupported) / `en` / `fr`, resolved in Python (testable) and passed as `data.language`. No in-window switch (rarely changed, one less state). `T = {...STRINGS.en, ...STRINGS[language]}`: a missing key falls back to English. Python/CLI messages stay English. A test keeps `STRINGS` languages = `config.LANGUAGES` and every translation's keys (and function-ness) = English's.
+- **Languages**: `[ui] language` = `auto` (system locale: `LC_ALL` > `LC_MESSAGES` > `LANG`, English if unsupported) / `en` / `fr`, resolved in Python (testable) and passed as `data.language`. **Language menu** in the window (same pattern as the Palette menu: `.popup-menu`, one entry per `STRINGS` language + "System language"), applied instantly via `applyLanguage()` (re-applies the static texts, buttons, hint and re-renders), remembered in the state (`set_language`), never in `config.toml`; priority window choice > config > system. A new language appears in the menu by itself (`STRINGS.<code>.name`). Any text set once at startup must be re-applied in `applyLanguage()`. `T = {...STRINGS.en, ...STRINGS[language]}`: a missing key falls back to English. Python/CLI messages stay English. A test keeps `STRINGS` languages = `config.LANGUAGES` and every translation's keys (and function-ness) = English's.
 - **JS safety net**: a tiny inline script in `index.html` (separate from `app.js`, since a syntax error there runs none of its code) catches `error` / `unhandledrejection` and shows an English popup with message + stack (fallback `file:line:col`: the stack can be empty). Only the first error is shown. Before `app.js` has finished (`window.__appReady` set on its last line) = **Close only** (nothing usable); afterwards = **Close / Continue** (the error may be harmless; after Continue, silence). Popup text lives in `STRINGS` with an identical English fallback inline (a test keeps them in sync). `tests/test_ui.py` runs `node --check` on `app.js` and the inline scripts (skipped without `node`).
 
 ## Measured facts (dev laptop, Arch + niri)

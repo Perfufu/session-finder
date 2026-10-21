@@ -2,7 +2,9 @@
 // Data injected by app.py: sessions (index.py), theme (themes.py: palette
 // catalogue + current choice), home, can_focus (bring an open session's window
 // to the front: only under niri), defaults_view (default view, --defaults)
-const { sessions, theme, home, can_focus: canFocus, defaults_view: defaultsView, language } = window.__DATA__;
+const { sessions, theme, home, can_focus: canFocus, defaults_view: defaultsView,
+        language_setting: initialLanguageSetting, language: initialLanguage,
+        system_language: systemLanguage } = window.__DATA__;
 let P;   // current palette, read on every graph frame
 
 // ---------- user-facing text ----------
@@ -11,6 +13,7 @@ let P;   // current palette, read on every graph frame
 // (+ its code in config.LANGUAGES).
 const STRINGS = {
   en: {
+    name: 'English',
     locale: 'en-GB',
     searchPlaceholder: 'Search… (title, message, folder)',
     hint: '↑↓ select · Enter resume · Esc ×2 close',
@@ -40,6 +43,8 @@ const STRINGS = {
     paletteTitle: 'Colour palette',
     otherPalette: 'Other… (pick a .toml file)',
     backToConfig: name => `↺ Back to config (${name})`,
+    languageTitle: 'Language',
+    languageAuto: name => `System language (${name})`,
     // Error popup (the inline handler in index.html holds the same text as a fallback)
     errorTitle: 'Session Finder ran into a problem',
     errorLoad: 'The interface could not start.',
@@ -48,6 +53,7 @@ const STRINGS = {
     errorContinue: 'Continue',
   },
   fr: {
+    name: 'Français',
     locale: 'fr-FR',
     searchPlaceholder: 'Rechercher… (titre, message, dossier)',
     hint: '↑↓ choisir · Entrée reprendre · Échap ×2 fermer',
@@ -77,6 +83,8 @@ const STRINGS = {
     paletteTitle: 'Palette de couleurs',
     otherPalette: 'Autre… (choisir un fichier .toml)',
     backToConfig: name => `↺ Revenir à la config (${name})`,
+    languageTitle: 'Langue',
+    languageAuto: name => `Langue du système (${name})`,
     errorTitle: 'Session Finder a rencontré un problème',
     errorLoad: 'L’interface n’a pas pu démarrer.',
     errorLater: 'Si rien ne semble anormal, vous pouvez continuer à l’utiliser.',
@@ -84,12 +92,18 @@ const STRINGS = {
     errorContinue: 'Continuer',
   },
 };
-// Language chosen by Python (config / system locale); a key missing from a translation falls back to English
-const T = { ...STRINGS.en, ...STRINGS[language] };
-document.documentElement.lang = language;
-for (const node of document.querySelectorAll('[data-i18n]')) node.textContent = T[node.dataset.i18n];
-for (const node of document.querySelectorAll('[data-i18n-placeholder]')) node.placeholder = T[node.dataset.i18nPlaceholder];
-for (const node of document.querySelectorAll('[data-i18n-title]')) node.title = T[node.dataset.i18nTitle];
+// Language chosen by Python (window choice > config > system locale); a key missing
+// from a translation falls back to English. Switching language later: applyLanguage().
+let language = initialLanguage;
+let languageSetting = initialLanguageSetting;   // "auto" or a language code (what the menu shows as selected)
+let T = { ...STRINGS.en, ...STRINGS[language] };
+function applyStaticText() {
+  document.documentElement.lang = language;
+  for (const node of document.querySelectorAll('[data-i18n]')) node.textContent = T[node.dataset.i18n];
+  for (const node of document.querySelectorAll('[data-i18n-placeholder]')) node.placeholder = T[node.dataset.i18nPlaceholder];
+  for (const node of document.querySelectorAll('[data-i18n-title]')) node.title = T[node.dataset.i18nTitle];
+}
+applyStaticText();
 
 // ---------- helpers ----------
 const DAY = 86400000;
@@ -514,6 +528,8 @@ modeBtn.addEventListener('click', () => {
 // written to config.toml. Picking the config's palette = clearing the remembered choice.
 const paletteBtn = document.getElementById('palette');
 const menuEl = document.getElementById('palette-menu');
+const languageMenuEl = document.getElementById('language-menu');
+const anyMenuOpen = () => !menuEl.hidden || !languageMenuEl.hidden;
 function showPaletteBtn() { paletteBtn.textContent = `${current.name} ▾`; paletteBtn.title = T.paletteTitle; }
 
 function usePalette(choice) {
@@ -557,7 +573,7 @@ function openMenu() {
   }
   menuEl.hidden = false;
 }
-function closeMenu() { menuEl.hidden = true; searchEl.focus(); }
+function closeMenu() { menuEl.hidden = true; languageMenuEl.hidden = true; searchEl.focus(); }
 
 async function browsePalette() {
   if (!window.pywebview?.api) return;
@@ -569,8 +585,58 @@ async function browsePalette() {
 }
 
 showPaletteBtn();
-paletteBtn.addEventListener('click', e => { e.stopPropagation(); menuEl.hidden ? openMenu() : closeMenu(); });
-document.addEventListener('click', e => { if (!menuEl.hidden && !menuEl.contains(e.target)) closeMenu(); });
+paletteBtn.addEventListener('click', e => {
+  e.stopPropagation();
+  const wasOpen = !menuEl.hidden;
+  closeMenu();
+  if (!wasOpen) openMenu();
+});
+document.addEventListener('click', e => {
+  if (anyMenuOpen() && !menuEl.contains(e.target) && !languageMenuEl.contains(e.target)) closeMenu();
+});
+
+// ---------- Language menu: "System language" + one entry per STRINGS language ----------
+// Applied instantly; choice remembered on the Python side (state), never in config.toml.
+const languageBtn = document.getElementById('language');
+const resolvedLanguage = setting => setting === 'auto' ? systemLanguage : setting;
+function showLanguageBtn() {
+  languageBtn.textContent = `${language.toUpperCase()} ▾`;
+  languageBtn.title = T.languageTitle;
+}
+function applyLanguage(setting) {
+  languageSetting = setting;
+  language = resolvedLanguage(setting);
+  T = { ...STRINGS.en, ...STRINGS[language] };
+  applyStaticText();
+  showMode();
+  showPaletteBtn();
+  showLanguageBtn();
+  hintEl.textContent = T.hint;
+  hintEl.classList.remove('armed');
+  render();
+  window.pywebview?.api.set_language(setting);
+}
+function openLanguageMenu() {
+  languageMenuEl.textContent = '';
+  const entry = (setting, label) => {
+    const item = el('button', 'menu-item');
+    item.type = 'button';
+    item.append(el('span', 'menu-mark', setting === languageSetting ? '●' : '○'), el('span', 'menu-label', label));
+    item.addEventListener('click', e => { e.stopPropagation(); closeMenu(); if (setting !== languageSetting) applyLanguage(setting); });
+    languageMenuEl.append(item);
+  };
+  entry('auto', T.languageAuto((STRINGS[systemLanguage] || STRINGS.en).name));
+  languageMenuEl.append(el('div', 'menu-sep'));
+  for (const code of Object.keys(STRINGS)) entry(code, STRINGS[code].name);
+  languageMenuEl.hidden = false;
+}
+languageBtn.addEventListener('click', e => {
+  e.stopPropagation();
+  const wasOpen = !languageMenuEl.hidden;
+  closeMenu();
+  if (!wasOpen) openLanguageMenu();
+});
+showLanguageBtn();
 
 // ---------- actions ----------
 async function resume(s) {
@@ -588,7 +654,7 @@ let closeArmedAt = 0, closeTimer = null;
 const hintEl = document.getElementById('hint');
 function escape(e) {
   if (e.repeat) return;
-  if (!menuEl.hidden) { closeMenu(); return; }
+  if (anyMenuOpen()) { closeMenu(); return; }
   if (searchEl.value) { searchEl.value = ''; applyFilters(); return; }
   if (scope) { setScope(null); return; }
   const dt = performance.now() - closeArmedAt;
@@ -602,7 +668,7 @@ function escape(e) {
 }
 
 document.addEventListener('keydown', e => {
-  if (!menuEl.hidden && e.key !== 'Escape') return;   // Palette menu open: no action on the list
+  if (anyMenuOpen() && e.key !== 'Escape') return;   // a menu is open: no action on the list
   if (e.key === 'ArrowDown') { e.preventDefault(); move(1); }
   else if (e.key === 'ArrowUp') { e.preventDefault(); move(-1); }
   else if (e.key === 'Enter') { const s = sessions.find(x => x.id === selectedId); if (s) resume(s); }

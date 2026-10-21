@@ -60,6 +60,11 @@ def resolve_language(setting, env=None):
     return code if code in LANGUAGES else "en"
 
 
+def language_setting(setting):
+    """What the window's Language menu shows as selected: "auto" or a supported code."""
+    return "auto" if setting == "auto" else resolve_language(setting)
+
+
 def warn(message):
     print(f"session-finder: {message}", file=sys.stderr)
 

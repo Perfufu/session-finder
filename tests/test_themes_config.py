@@ -218,6 +218,25 @@ def test_remembered_choices_and_default_view(xdg):
     assert json.loads(app.state_path().read_text()) == {"mode": "light"}
 
 
+def test_language_choice_priority_and_validation(xdg):
+    cfg_fr = {"ui": {"language": "fr"}}
+    assert app.language_setting({}, cfg_fr) == "fr"                              # config
+    assert app.language_setting({"language": "en"}, cfg_fr) == "en"              # window choice wins
+    assert app.language_setting({"language": "auto"}, cfg_fr) == "auto"          # "System language" is a choice too
+    assert app.language_setting({"language": "klingon"}, cfg_fr) == "fr"         # invalid state ignored
+    assert app.language_setting({}, {"ui": {"language": "auto"}}) == "auto"
+    assert app.language_setting({}, {"ui": {"language": "klingon"}}) == "en"
+
+    api = app.Api(terminal=None)
+    api.set_language("fr")
+    api.set_language("klingon")   # refused
+    assert json.loads(app.state_path().read_text()) == {"language": "fr"}
+    api.set_language("auto")
+    assert json.loads(app.state_path().read_text()) == {"language": "auto"}
+    app.Api(terminal=None, persist=False).set_language("en")   # --defaults: nothing written
+    assert json.loads(app.state_path().read_text()) == {"language": "auto"}
+
+
 # ---------- window engine ----------
 @pytest.mark.parametrize("gtk,qt,preferred,expected", [
     (True, True, "auto", "gtk"),     # GTK preferred when usable

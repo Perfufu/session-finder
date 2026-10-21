@@ -22,10 +22,12 @@
         <div class="title-row">
           <div class="title">Session Finder <span id="count"></span></div>
           <div class="title-actions">
+            <button id="language" type="button"></button>
             <button id="palette" type="button"></button>
             <button id="mode" type="button"></button>
           </div>
-          <div id="palette-menu" role="menu" hidden></div>
+          <div id="language-menu" class="popup-menu" role="menu" hidden></div>
+          <div id="palette-menu" class="popup-menu" role="menu" hidden></div>
         </div>
         <input id="search" type="text" data-i18n-placeholder="searchPlaceholder" autocomplete="off" spellcheck="false">
         <div id="scope" hidden><span class="scope-path"></span><button type="button" data-i18n-title="removeFilter">✕</button></div>

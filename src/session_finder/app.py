@@ -85,6 +85,11 @@ class Api:
         if mode in themes.MODES:
             self._remember("mode", mode)
 
+    def set_language(self, setting):
+        """Remembers the choice made in the Language menu ("auto" or a supported code)."""
+        if setting == "auto" or setting in config.LANGUAGES:
+            self._remember("language", setting)
+
     def set_palette(self, choice_id):
         """Remembers the choice made in the Palette menu; None = back to the config."""
         if choice_id is None or isinstance(choice_id, str):
@@ -122,6 +127,14 @@ def build_page(data):
                   (pkg / "ui/index.html").read_text())
 
 
+def language_setting(state, cfg):
+    """Same priority as the colours: choice made in the window (state) > config > default."""
+    saved = state.get("language")
+    if saved == "auto" or saved in config.LANGUAGES:
+        return saved
+    return config.language_setting(cfg["ui"]["language"])
+
+
 def single_instance():
     """True if we are the only instance. Under niri, an existing instance is
     brought to the front; elsewhere, a plain lock file (kept open until exit)."""
@@ -153,10 +166,12 @@ def run(engine, debug=False, defaults=False):
         cfg, state, palettes = config.load(), load_state(), config.palettes_dir()
     theme = themes.resolve(cfg["theme"], state, palettes)
     terminal = launchers.find_terminal(cfg["terminal"]["command"])
+    setting = language_setting(state, cfg)
 
     data = {"sessions": index.build_index(), "theme": theme, "defaults_view": defaults,
             "home": str(Path.home()), "can_focus": niri.available(),
-            "language": config.resolve_language(cfg["ui"]["language"])}
+            "language_setting": setting, "language": config.resolve_language(setting),
+            "system_language": config.resolve_language("auto")}
 
     engines.prepare(engine, APP_ID)
     import webview

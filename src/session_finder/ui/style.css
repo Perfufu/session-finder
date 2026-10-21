@@ -61,11 +61,11 @@ header { padding: 16px 16px 10px; }
 .title { color: var(--accent); font-weight: bold; font-size: 15px; }
 .title-row { position: relative; }
 .title-actions { display: flex; gap: 6px; }
-#mode, #palette {
+#mode, #palette, #language {
   border: 1px solid rgba(var(--fg-rgb), 0.15); background: transparent; color: var(--fg-dim);
   font: inherit; font-size: 11px; padding: 3px 8px; border-radius: 8px; cursor: pointer;
 }
-#mode:hover, #palette:hover { color: var(--fg); border-color: var(--accent); }
+#mode:hover, #palette:hover, #language:hover { color: var(--fg); border-color: var(--accent); }
 #palette { max-width: 170px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 #mode[hidden] { display: none; }
 #count { color: var(--fg-dim); font-weight: normal; font-size: 12px; margin-left: 6px; }
@@ -122,14 +122,15 @@ footer {
 }
 #status { color: var(--error); }
 
-/* Palette menu */
-#palette-menu {
+/* Palette and language menus */
+.popup-menu {
   position: absolute; right: 0; top: calc(100% + 6px); z-index: 5; min-width: 290px;
   padding: 6px; border-radius: 10px;
   background: var(--bg); border: 1px solid rgba(var(--fg-rgb), 0.15);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
 }
-#palette-menu[hidden] { display: none; }
+.popup-menu[hidden] { display: none; }
+#language-menu { min-width: 190px; }
 .menu-item {
   display: flex; align-items: center; gap: 8px; width: 100%;
   padding: 6px 8px; border: 0; border-radius: 7px; cursor: pointer;
