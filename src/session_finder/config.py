@@ -35,9 +35,16 @@ def palettes_dir():
     return config_dir() / "palettes"
 
 
+def data_dir():
+    return Path(os.environ.get("XDG_DATA_HOME") or Path.home() / ".local" / "share")
+
+
 def applications_dir():
-    base = os.environ.get("XDG_DATA_HOME") or Path.home() / ".local" / "share"
-    return Path(base) / "applications"
+    return data_dir() / "applications"
+
+
+def icons_dir():
+    return data_dir() / "icons" / "hicolor" / "scalable" / "apps"
 
 
 def warn(message):

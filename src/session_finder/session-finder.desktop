@@ -6,6 +6,7 @@ Comment=Find and resume your Claude Code conversations
 # Absolute path filled in by `session-finder --install-desktop`: launchers often
 # have a PATH without ~/.local/bin, where `uv tool install` puts the command.
 Exec=@EXEC@
+Icon=session-finder
 Terminal=false
 Categories=Utility;
 Keywords=claude;session;conversation;resume;

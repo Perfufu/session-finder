@@ -68,7 +68,7 @@ def main(argv=None):
     parser.add_argument("--new-palette", metavar="NAME",
                         help="create a personal palette ~/.config/session-finder/palettes/NAME.toml from the template")
     parser.add_argument("--install-desktop", action="store_true",
-                        help="add Session Finder to your application launcher (~/.local/share/applications/session-finder.desktop)")
+                        help="add Session Finder to your application launcher (+ icon, under ~/.local/share)")
     parser.add_argument("--debug", action="store_true", help="window with developer tools")
     parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
     args = parser.parse_args(argv)
@@ -94,7 +94,11 @@ def main(argv=None):
         ok, message = config.create_from_example(
             config.applications_dir() / "session-finder.desktop", "session-finder.desktop", {"@EXEC@": exe})
         print(f"session-finder: {message}", file=sys.stdout if ok else sys.stderr)
-        return 0 if ok else 1
+        # Icon: independent of the entry (a missing icon must not hide a created entry)
+        icon_ok, icon_message = config.create_from_example(
+            config.icons_dir() / "session-finder.svg", "session-finder.svg")
+        print(f"session-finder: {icon_message}", file=sys.stdout if icon_ok else sys.stderr)
+        return 0 if ok and icon_ok else 1
 
     if args.table or args.json:
         sessions = index.build_index(include_hidden=args.all)

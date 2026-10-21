@@ -171,6 +171,8 @@ def test_install_desktop_creates_then_refuses_to_overwrite(xdg, monkeypatch):
     text = target.read_text()
     assert 'Exec="/opt/my tools/session-finder"' in text and "@EXEC@" not in text
     assert "StartupWMClass=" + app.APP_ID in text
+    assert (config.icons_dir() / "session-finder.svg").read_text() == config.example("session-finder.svg")
+    assert "Icon=session-finder" in text
     target.write_text("mine")
     assert cli.main(["--install-desktop"]) == 1
     assert target.read_text() == "mine"

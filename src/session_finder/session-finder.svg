@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <title>Session Finder</title>
+  <!-- Colours = the default dark preset (themes.py): BG, FG, ACCENT, ACCENT_ALT -->
+  <rect width="128" height="128" rx="26" fill="#16181d"/>
+  <!-- graph edges (drawn first: the lens covers their inner part) -->
+  <g stroke="#8b93a1" stroke-width="2.5" stroke-linecap="round">
+    <line x1="52" y1="52" x2="16" y2="64"/>
+    <line x1="52" y1="52" x2="94" y2="14"/>
+    <line x1="52" y1="52" x2="108" y2="80"/>
+  </g>
+  <!-- outer nodes -->
+  <circle cx="16" cy="64" r="8" fill="#8b9cf7"/>
+  <circle cx="94" cy="14" r="6" fill="#c49af0"/>
+  <circle cx="108" cy="80" r="9" fill="#8b9cf7"/>
+  <!-- lens + handle -->
+  <g stroke="#e6e8eb" stroke-width="5" stroke-linejoin="round">
+    <circle cx="52" cy="52" r="28" fill="#16181d" fill-opacity=".82"/>
+    <rect x="83" y="47" width="30" height="10" rx="2" fill="#16181d" transform="rotate(45 52 52)"/>
+  </g>
+  <!-- nodes seen through the lens -->
+  <g stroke="#8b93a1" stroke-width="2" stroke-linecap="round">
+    <line x1="52" y1="52" x2="38" y2="36"/>
+    <line x1="52" y1="52" x2="40" y2="70"/>
+  </g>
+  <circle cx="38" cy="36" r="4" fill="#c49af0"/>
+  <circle cx="40" cy="70" r="4" fill="#c49af0"/>
+  <circle cx="52" cy="52" r="11" fill="#8b9cf7"/>
+</svg>

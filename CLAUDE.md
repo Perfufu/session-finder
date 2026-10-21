@@ -24,7 +24,7 @@ Testing the self-contained Qt engine like a user without system packages: a sepa
 |---|---|
 | `index.py` | **Read-only** scan of `<claude>/projects/*/*.jsonl` (`CLAUDE_CONFIG_DIR` honoured), cache `~/.cache/session-finder/` invalidated by (mtime, size) |
 | `config.py` | `~/.config/session-finder/config.toml` (defaults if missing/invalid); shipped templates copied, never overwriting |
-| `session-finder.desktop` | Launcher entry template (`@EXEC@` filled in by `--install-desktop`: absolute path, since launchers often lack `~/.local/bin`); `StartupWMClass` must equal `APP_ID` |
+| `session-finder.desktop`, `session-finder.svg` | Launcher entry template + icon (default dark preset colours, installed under `~/.local/share/icons/hicolor/scalable/apps/`) (`@EXEC@` filled in by `--install-desktop`: absolute path, since launchers often lack `~/.local/bin`); `StartupWMClass` must equal `APP_ID` |
 | `config.example.toml`, `palette.example.toml` | Commented templates (`--init-config`, `--new-palette NAME`); a test guarantees the config template = `DEFAULTS` |
 | `themes.py` | Palette catalogue: built-in `preset:*` (default + red/green/yellow/blue/purple/orange: shared neutral backgrounds, only the accent pair differs), `user:*` (`palettes/*.toml`), `file:*` ("Other…"), `palette-sh` (config only); colours validated as `#rrggbb` |
 | `launchers.py` | Terminal: config > `$TERMINAL` > detection (9 known, unknown = `-e`); fish handled |
@@ -74,7 +74,7 @@ Testing the self-contained Qt engine like a user without system packages: a sepa
 
 Public repository: https://github.com/Perfufu/session-finder (MIT). Before each push, check that nothing personal is left (home paths, names, emails) and that `git add -n .` only lists intended files. Bug reports and merge requests are where details about other people's machines belong — not in this file.
 
-1. ~~`.desktop` file~~ — **done** (`--install-desktop`, user-level, never overwrites). Still open: an icon (`Icon=` omitted for now).
+1. ~~`.desktop` file~~ — **done** (`--install-desktop`, user-level, never overwrites).
 2. **Defensive reading**: record the Claude Code versions tested (`version` field of `.jsonl` lines); discreet warning if a newer version gives inconsistent results.
 3. **French translation**: `STRINGS.fr` in `app.js` + language choice (config / system locale); Python messages to wrap if needed.
 4. **Idea — other AI tools as "sources"**: only `index.py` (reading `~/.claude`) and the resume command (`claude --resume`) are specific to Claude Code; graph, list, search, palettes and terminal launchers are not. Supporting another CLI tool (Dust CLI, console ChatGPT clients…) = a source interface: list its conversations (id, folder, title, dates, running state) + the command that resumes one. The "for Claude Code" name would then become too narrow.
