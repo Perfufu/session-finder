@@ -13,7 +13,7 @@ uv pip install -e . pytest
 .venv/bin/session-finder --defaults   # a new user's view (writes nothing)
 .venv/bin/session-finder --engine qt  # force an engine (auto | gtk | qt)
 .venv/bin/session-finder --table      # quick check in the terminal (--all: hidden sessions)
-.venv/bin/pytest -q                   # 51 tests
+.venv/bin/pytest -q                   # 54 tests
 ```
 
 Testing the self-contained Qt engine like a user without system packages: a separate venv **without** `--system-site-packages` (e.g. `uv venv --python 3.13 /tmp/qtenv && VIRTUAL_ENV=/tmp/qtenv uv pip install -e ".[qt]"`).
@@ -58,6 +58,7 @@ Testing the self-contained Qt engine like a user without system packages: a sepa
 - **No icon-font glyph in the UI**: the folder icon is a vector (`FOLDER_PATH` Path2D in the graph, `.folder-ico` CSS mask in the DOM). A Nerd Font codepoint showed as an empty rectangle on machines without that font.
 - **Presets**: one neutral dark/light background shared by all, only `ACCENT`/`ACCENT_ALT` change (distinct character per preset); `green` moves `SUCCESS` to teal so open sessions stay distinguishable.
 - **uv install**: README documents `command -v uv || curl … astral.sh/uv/install.sh | sh` (no install script in the repo) + the `PATH` pitfall.
+- **JS safety net**: a tiny inline script in `index.html` (separate from `app.js`, since a syntax error there runs none of its code) catches `error` / `unhandledrejection` and shows an English popup with message + stack (fallback `file:line:col`: the stack can be empty). Only the first error is shown. Before `app.js` has finished (`window.__appReady` set on its last line) = **Close only** (nothing usable); afterwards = **Close / Continue** (the error may be harmless; after Continue, silence). Popup text lives in `STRINGS` with an identical English fallback inline (a test keeps them in sync). `tests/test_ui.py` runs `node --check` on `app.js` and the inline scripts (skipped without `node`).
 
 ## Measured facts (dev laptop, Arch + niri)
 
@@ -76,7 +77,4 @@ Public repository: https://github.com/Perfufu/session-finder (MIT). Before each 
 2. **Defensive reading**: record the Claude Code versions tested (`version` field of `.jsonl` lines); discreet warning if a newer version gives inconsistent results.
 3. **French translation**: `STRINGS.fr` in `app.js` + language choice (config / system locale); Python messages to wrap if needed.
 4. **Idea — other AI tools as "sources"**: only `index.py` (reading `~/.claude`) and the resume command (`claude --resume`) are specific to Claude Code; graph, list, search, palettes and terminal launchers are not. Supporting another CLI tool (Dust CLI, console ChatGPT clients…) = a source interface: list its conversations (id, folder, title, dates, running state) + the command that resumes one. The "for Claude Code" name would then become too narrow.
-5. **JS safety net** (a syntax error in `app.js` = black window, silent; seen once, tests did not catch it).
-   - *Dev side*: a test running `node --check` on `ui/app.js` (skipped if `node` is missing).
-   - *Runtime side*: a global handler (`window.onerror` / `unhandledrejection`) — silent when all is well; on an error, an English popup with the message + stack trace (text in `STRINGS`). A load-time syntax error cannot run any JS of that file, so the handler must live in a tiny separate inline script in `index.html`.
-   - **Open question — what happens after the popup**: either *continue* (the error may be harmless / a false alarm), or *kill the process* and let the user relaunch. Likely split: error during load = kill (nothing usable anyway), error later = continue + popup. To decide.
+5. ~~JS safety net~~ — **done**, see Decisions.

@@ -37,6 +37,56 @@
       </footer>
     </aside>
   </main>
+  <!-- Safety net, kept tiny and separate from app.js on purpose: a syntax error in app.js
+       prevents any of its code from running, so the handler cannot live there.
+       Text: STRINGS (app.js) when it loaded, else the English fallback below. -->
+  <script>
+  (() => {
+    const FALLBACK = {
+      errorTitle: 'Session Finder ran into a problem',
+      errorLoad: 'The interface could not start.',
+      errorLater: 'If nothing looks wrong to you, you can keep using it.',
+      errorClose: 'Close',
+      errorContinue: 'Continue',
+    };
+    let shown = false;
+    const text = key => (typeof STRINGS !== 'undefined' && STRINGS.en[key]) || FALLBACK[key];
+    function report(message, stack) {
+      if (shown) return;   // first error only: after "Continue" the user chose to go on
+      shown = true;
+      const ready = !!window.__appReady;   // set at the end of app.js
+      const el = (tag, css, content) => {
+        const e = document.createElement(tag);
+        e.style.cssText = css;
+        if (content) e.textContent = content;
+        return e;
+      };
+      const overlay = el('div', 'position:fixed;inset:0;z-index:99999;display:flex;align-items:center;' +
+        'justify-content:center;background:rgba(0,0,0,.6);font:13px sans-serif');
+      const box = el('div', 'max-width:80%;max-height:80%;display:flex;flex-direction:column;gap:10px;' +
+        'padding:16px;border-radius:8px;background:#1e1e2e;color:#ddd;border:1px solid #f38ba8');
+      box.append(el('div', 'font-weight:bold;font-size:15px;color:#f38ba8', text('errorTitle')),
+                 el('div', '', text(ready ? 'errorLater' : 'errorLoad')),
+                 el('pre', 'margin:0;overflow:auto;font-size:11px;white-space:pre-wrap;user-select:text',
+                    [message, stack].filter(Boolean).join('\n')));
+      const buttons = el('div', 'display:flex;gap:8px;justify-content:flex-end');
+      const button = (label, onclick) => {
+        const b = el('button', 'padding:4px 14px;cursor:pointer', label);
+        b.onclick = onclick;
+        buttons.append(b);
+      };
+      button(text('errorClose'), () => window.pywebview?.api ? window.pywebview.api.close() : window.close());
+      if (ready) button(text('errorContinue'), () => overlay.remove());   // nothing usable before the app is up
+      box.append(buttons);
+      overlay.append(box);
+      (document.body || document.documentElement).append(overlay);
+    }
+    // The stack can be empty (syntax errors, global code, some engines): file:line:col always exists
+    window.addEventListener('error', e => report(e.message,
+      e.error?.stack || `at ${(e.filename || 'inline script').split('/').pop()}:${e.lineno}:${e.colno}`));
+    window.addEventListener('unhandledrejection', e => report(String(e.reason?.message || e.reason), e.reason?.stack));
+  })();
+  </script>
   <script>/*VENDOR*/</script>
   <script>/*DATA*/</script>
   <script>/*APP*/</script>

@@ -39,6 +39,12 @@ const STRINGS = {
     paletteTitle: 'Colour palette',
     otherPalette: 'Other… (pick a .toml file)',
     backToConfig: name => `↺ Back to config (${name})`,
+    // Error popup (the inline handler in index.html holds the same text as a fallback)
+    errorTitle: 'Session Finder ran into a problem',
+    errorLoad: 'The interface could not start.',
+    errorLater: 'If nothing looks wrong to you, you can keep using it.',
+    errorClose: 'Close',
+    errorContinue: 'Continue',
   },
 };
 const T = STRINGS.en;
@@ -569,3 +575,5 @@ document.addEventListener('keydown', e => {
 
 render();
 searchEl.focus();
+
+window.__appReady = true;   // read by the error handler in index.html
