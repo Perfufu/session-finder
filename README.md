@@ -6,6 +6,22 @@ Find and resume your Claude Code conversations, **whichever folder they were sta
 
 `claude --resume` only lists the conversations of the current folder. Session Finder lists all of them as a **per-folder graph** (like Obsidian's graph view) + a **searchable list**, and reopens the chosen conversation in a terminal, in the right place.
 
+## Speedrun
+
+Don't read READMEs? Same, honestly. Linux, self-contained install (details below if something breaks):
+
+```sh
+# Install (copy-paste the whole block)
+command -v uv >/dev/null || curl -LsSf https://astral.sh/uv/install.sh | sh
+export PATH="$HOME/.local/bin:$PATH"     # uv was maybe just installed: make it visible now
+uv tool install "session-finder[qt] @ git+https://github.com/Perfufu/session-finder"
+session-finder --install-desktop         # optional: launcher entry + icon (fuzzel, rofi, GNOME, KDE…)
+session-finder
+
+# Update (later)
+uv tool upgrade session-finder
+```
+
 ## What it does
 
 - **Graph**: launch folders form a tree, each conversation is a dot attached to its folder. Size = conversation length, colour = age, animated aura = conversation currently open.
@@ -31,6 +47,10 @@ command -v uv >/dev/null || curl -LsSf https://astral.sh/uv/install.sh | sh
 
 # 2. Session Finder
 uv tool install "session-finder[qt] @ git+https://github.com/Perfufu/session-finder"
+
+# 3. Optional: launcher entry + icon (fuzzel, rofi, GNOME/KDE menus…), see "Launcher entry" below
+session-finder --install-desktop
+
 session-finder
 ```
 
