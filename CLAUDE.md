@@ -4,6 +4,27 @@ Tool that lists every Claude Code conversation (whichever folder it was started 
 
 This file is the project's source of truth (architecture, conventions, decisions, roadmap): no need to reread past conversations. **The repository is generic**: nothing specific to one machine or user goes in (no personal paths, no personal config — personalisation goes through the user config, outside the repo).
 
+## Scope
+
+**Purpose, in one sentence**: see every Claude Code conversation, whichever folder it was started from, and reopen one in the right place. Session Finder is the *history* you consult to find something again (an ongoing task, a piece of information that went by) — not a dashboard of ongoing work.
+
+**Goal: a finished object.** The aim is a tool that is complete and stable, not an ever-growing platform. "Done" means the purpose above is served well (fast, reliable, portable, documented); after that, only fixes, compatibility with Claude Code changes, and requests that pass the test below.
+
+**Test for any new feature** — all three answers must be yes:
+1. Does it help find or resume a conversation?
+2. Does it work from `~/.claude` alone, offline, read-only?
+3. Does it work without a daemon or any state to keep in sync?
+
+A feature that fails one goes to *Out of scope*, or to another project.
+
+**Out of scope** (decided; reopening one needs a new explicit decision recorded in *Decisions*):
+- Supervision / "control tower": live state of running sessions, git state of projects (dirty tree, unpushed commits), merge requests, issue trackers, anything needing the network or a forge login.
+- Being the client of a daemon, or running one.
+- Acting on a folder rather than on a conversation (e.g. opening several terminals in it).
+- Running inside Claude Code (mods/plugins): a mod lives in one session, this tool is global.
+
+**Bricks, not a monolith.** The tool is standalone and complete on its own. A bridge to another tool is allowed only if it is **optional** (works identically when the other tool is absent), **one-way and read-only**, and detected at runtime (like `niri.py`). Another project can use Session Finder's data or be used by it; neither may become required for the other to make sense. Supporting another AI tool's conversations (roadmap 4) stays an idea until it can be expressed as a source behind the same finder purpose.
+
 ## Commands
 
 ```sh
@@ -79,6 +100,12 @@ Public repository: https://github.com/Perfufu/session-finder (MIT). Before each 
 1. ~~`.desktop` file~~ — **done** (`--install-desktop`, user-level, never overwrites).
 2. ~~Defensive reading~~ — **abandoned** (decision: no version-based warning). Idea was: warn when sessions written by a Claude Code version newer than the last tested one lack `cwd`/`timestamp`. Rejected because it needs a hard-coded "last tested version" constant that someone must bump on every release, with no automatic reminder: forgotten, the warning becomes wrong or silent. The reading is already defensive (truncated lines, missing fields: nothing crashes). Cheap fallback if ever wanted: warn on anomalies alone (answered sessions with no `cwd`/`timestamp`: 0 on 56 real sessions with 2.1.276/2.1.294), no version involved. Replaced by guidance for users to report problems: README section, `.github/ISSUE_TEMPLATE/`, `--report`.
 3. ~~French translation~~ — **done**, see Decisions.
-4. **Idea — other AI tools as "sources"**: only `index.py` (reading `~/.claude`) and the resume command (`claude --resume`) are specific to Claude Code; graph, list, search, palettes and terminal launchers are not. Supporting another CLI tool (Dust CLI, console ChatGPT clients…) = a source interface: list its conversations (id, folder, title, dates, running state) + the command that resumes one. The "for Claude Code" name would then become too narrow.
+4. **Idea — other AI tools as "sources"**: only `index.py` (reading `~/.claude`) and the resume command (`claude --resume`) are specific to Claude Code; graph, list, search, palettes and terminal launchers are not. Supporting another CLI tool (Dust CLI, console ChatGPT clients…) = a source interface: list its conversations (id, folder, title, dates, running state) + the command that resumes one. The "for Claude Code" name would then become too narrow. **Stays an idea** until it can be expressed as a source behind the same finder purpose (see Scope); nothing to do before then.
 5. ~~JS safety net~~ — **done**, see Decisions.
 6. **Open question — launcher entry discoverability**: `--install-desktop` is one explicit command (a wheel cannot write to `~/.local/share`, `uv tool upgrade` runs no hook). Option under consideration: a discreet startup hint when the entry is missing (more discoverable, but chattier, needs a way to silence it). **Pending feedback from the target users** (colleagues, friends) — decide after that.
+7. **To do — exclude folders**: config option listing folders whose conversations are hidden (e.g. scheduled `claude -p` jobs cluttering the list). Same mechanism as the existing hidden sessions (`--all` shows them).
+8. **To do — hide non-interactive sessions (`claude -p`)**: only if the `.jsonl` lets us tell them apart reliably (to be checked first, defensive reading as always). Otherwise folded into item 7.
+9. **To do — fuzzy matching in the search**: tolerate typos / partial words when nothing matches exactly. JS side, no new dependency.
+10. **To do — README: try without installing** with `uvx "session-finder[qt] @ git+https://github.com/Perfufu/session-finder"`.
+
+Ideas received and ruled out (control tower, daemon client, mods, opening several terminals in a folder): see **Scope → Out of scope**; not repeated here.
