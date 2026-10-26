@@ -118,6 +118,25 @@ const rgba = (h, a) => `rgba(${hexRgb(h).join(',')},${a})`;
 const mix = (a, b, t) => { const A = hexRgb(a), B = hexRgb(b); return `rgb(${A.map((v, i) => Math.round(v + (B[i] - v) * t))})`; };
 // case- and accent-insensitive search ("theme" finds "thème")
 const norm = s => (s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+// fuzzy fallback (pure, tested through node): `word` matches `hay` if some substring of `hay`
+// is within a few edits of it (Sellers' approximate substring matching: typos, partial words)
+// FUZZY-BEGIN
+const fuzzyBudget = w => w.length < 4 ? 0 : w.length < 7 ? 1 : 2;
+function fuzzyIncludes(hay, word) {
+  if (hay.includes(word)) return true;
+  const k = fuzzyBudget(word);
+  if (!k) return false;
+  let prev = Array.from({ length: word.length + 1 }, (_, i) => i);   // free start anywhere in hay
+  for (let j = 0; j < hay.length; j++) {
+    const row = [0];
+    for (let i = 1; i <= word.length; i++)
+      row[i] = Math.min(prev[i] + 1, row[i - 1] + 1, prev[i - 1] + (word[i - 1] === hay[j] ? 0 : 1));
+    if (row[word.length] <= k) return true;
+    prev = row;
+  }
+  return false;
+}
+// FUZZY-END
 const short = p => p === home ? '~' : p.startsWith(home + '/') ? '~' + p.slice(home.length) : p;
 const ageDays = s => (Date.now() - Date.parse(s.updated || s.created)) / DAY;
 function ago(s) {
@@ -497,11 +516,16 @@ function applyFilters() {
   if (!words.length && !scope) matches = null;
   else {
     matches = new Set();
+    const hays = [];
     for (const s of sessions) {
       if (scope && !under(s.cwd, scope)) continue;
       const hay = norm([s.title, s.first_prompt, s.last_prompt, short(s.cwd), s.id.slice(0, 8), s.git_branch].join(' '));
+      hays.push([s.id, hay]);
       if (words.every(w => hay.includes(w))) matches.add(s.id);
     }
+    // nothing matches exactly: tolerate typos (exact results always come first, alone)
+    if (!matches.size && words.length)
+      for (const [id, hay] of hays) if (words.every(w => fuzzyIncludes(hay, w))) matches.add(id);
   }
   render();
   if (matches && matches.size) fg.zoomToFit(500, 80, n => lit.has(n.id));   // frame the results

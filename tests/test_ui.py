@@ -1,4 +1,5 @@
 """JS safety net: a syntax error in the UI means a black window, silently."""
+import json
 import re
 import shutil
 import subprocess
@@ -60,3 +61,26 @@ def test_translations_cover_the_same_keys_as_english():
     en = string_keys(strings_block(app_js, "en"))
     for lang in config.LANGUAGES:
         assert string_keys(strings_block(app_js, lang)) == en, lang
+
+
+@node
+def test_fuzzy_includes(tmp_path):
+    app_js = (resources.files("session_finder") / "ui/app.js").read_text()
+    code = re.search(r"// FUZZY-BEGIN\n(.*?)// FUZZY-END", app_js, re.S).group(1)
+    cases = [  # (haystack, word, expected)
+        ("fix the websocket reconnect", "websocket", True),    # exact
+        ("fix the websocket reconnect", "websockte", True),    # transposition
+        ("fix the websocket reconnect", "reconect", True),     # missing letter
+        ("fix the websocket reconnect", "wbsocket", True),     # missing letter, 8 chars
+        ("fix the websocket reconnect", "reconnecting", False),  # beyond the budget
+        ("fix the websocket reconnect", "dockerfile", False),
+        ("fix the websocket reconnect", "fox", False),         # short words stay exact
+        ("fix the websocket reconnect", "", True),
+    ]
+    script = code + "\nconst cases = " + json.dumps(cases) + """;
+for (const [h, w, want] of cases) if (fuzzyIncludes(h, w) !== want) { console.error('FAIL', h, w, want); process.exit(1); }
+"""
+    f = tmp_path / "fuzzy.js"
+    f.write_text(script)
+    r = subprocess.run(["node", str(f)], capture_output=True, text=True)
+    assert r.returncode == 0, r.stderr
