@@ -10,7 +10,7 @@ from pathlib import Path
 
 from . import __version__, config, engines, index, report
 
-HIDDEN_LABEL = {"no-reply": "no reply", "excluded": "excluded folder", "non-interactive": "non-interactive"}
+HIDDEN_LABEL = {"excluded": "excluded folder", "non-interactive": "non-interactive"}
 PALETTE_NAME = re.compile(r"^[A-Za-z0-9_-]+$")  # no "/" nor "..": stays inside palettes/
 
 
@@ -50,6 +50,8 @@ def print_table(sessions):
         hidden = f"  (hidden: {HIDDEN_LABEL[s['hidden_reason']]})" if s["hidden"] else ""
         if s["non_interactive"]:
             hidden += "  [claude -p]"
+        if s["no_reply"]:
+            hidden += "  ⚠ no reply"
         print(f"  {local_time(s['updated'])}  {s['id'][:8]}  {s['user_messages']:>3} msg  "
               f"{mark} {s['title'][:60]}{run}{hidden}")
     print(f"\n{len(sessions)} sessions  (✎ /rename title, ? no auto title → first message, ● running)")
@@ -61,7 +63,7 @@ def main(argv=None):
         description="Find and resume your Claude Code conversations.")
     parser.add_argument("--table", action="store_true", help="print the list in the terminal")
     parser.add_argument("--json", action="store_true", help="print the index as JSON")
-    parser.add_argument("--all", action="store_true", help="include sessions Claude never replied to")
+    parser.add_argument("--all", action="store_true", help="include the sessions hidden by the [sessions] config (claude -p, excluded folders)")
     parser.add_argument("--defaults", action="store_true",
                         help="default view, as a new user sees it (ignores config, personal palettes and remembered choices)")
     parser.add_argument("--engine", choices=engines.ENGINES, default="auto",

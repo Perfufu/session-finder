@@ -108,6 +108,12 @@ header { padding: 16px 16px 10px; }
 .item .meta { font-size: 11px; color: var(--fg-dim); margin-top: 2px; }
 .mark-custom { color: var(--accent); }
 .mark-running { color: var(--success); }
+.item.broken .name { opacity: 0.6; }
+.warn-ico {
+  width: 14px; height: 14px; vertical-align: -2px; margin-right: 5px; flex: none;
+  fill: rgba(var(--fg-dim-rgb), 0.25); stroke: var(--warning); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+  filter: drop-shadow(0 1px 1.5px rgba(0, 0, 0, 0.55));
+}
 
 .details { display: none; margin-top: 8px; font-size: 12px; }
 .item.selected .details { display: block; }

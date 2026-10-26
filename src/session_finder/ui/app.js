@@ -35,7 +35,8 @@ const STRINGS = {
     noMatch: 'No conversation matches.',
     showHiddenTitle: n => `Show hidden conversations (${n})`,
     hideHiddenTitle: n => `Hide hidden conversations (${n})`,
-    hiddenReasons: { 'no-reply': 'no reply', excluded: 'excluded folder', 'non-interactive': 'non-interactive (claude -p)' },
+    hiddenReasons: { excluded: 'excluded folder', 'non-interactive': 'non-interactive (claude -p)' },
+    noReply: 'no reply: something went wrong',
     resume: 'Resume',
     goToWindow: 'Go to window',
     folderMissing: 'Folder not found',
@@ -78,7 +79,8 @@ const STRINGS = {
     noMatch: 'Aucune conversation ne correspond.',
     showHiddenTitle: n => `Afficher les conversations masquées (${n})`,
     hideHiddenTitle: n => `Masquer les conversations masquées (${n})`,
-    hiddenReasons: { 'no-reply': 'sans réponse', excluded: 'dossier exclu', 'non-interactive': 'non interactive (claude -p)' },
+    hiddenReasons: { excluded: 'dossier exclu', 'non-interactive': 'non interactive (claude -p)' },
+    noReply: 'sans réponse : un problème est survenu',
     resume: 'Reprendre',
     goToWindow: 'Aller à la fenêtre',
     folderMissing: 'Dossier introuvable',
@@ -399,9 +401,18 @@ function drawNode(n, ctx, scale) {
     ctx.fillStyle = rgba(P.FG, 0.85); ctx.fill(FOLDER_PATH);
     ctx.restore();
   } else {
-    ctx.fillStyle = recency(n.s);
-    ctx.fill();
-    ctx.shadowBlur = 0;
+    if (n.s.no_reply) {
+      // greyed triangle with a warning outline: a conversation that went wrong (palette-independent: not the accent colour)
+      const t = r * 1.7;
+      ctx.beginPath(); ctx.moveTo(n.x, n.y - t); ctx.lineTo(n.x + t * 0.95, n.y + t * 0.75); ctx.lineTo(n.x - t * 0.95, n.y + t * 0.75); ctx.closePath();
+      ctx.fillStyle = rgba(P.FG_DIM, 0.55); ctx.fill();
+      ctx.shadowBlur = 0;
+      ctx.lineWidth = 1.2 / scale; ctx.strokeStyle = P.WARNING; ctx.stroke();
+    } else {
+      ctx.fillStyle = recency(n.s);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+    }
   }
   if (sel) {
     ctx.beginPath(); ctx.arc(n.x, n.y, r + 4 / scale + 2, 0, 2 * Math.PI);
@@ -466,6 +477,19 @@ function render() {
   refreshLit();
 }
 
+// Warning triangle (inline SVG, not a font glyph: see the decision on icons)
+function warnIcon() {
+  const NS = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(NS, 'svg');
+  svg.setAttribute('viewBox', '0 0 24 24'); svg.setAttribute('class', 'warn-ico'); svg.setAttribute('aria-hidden', 'true');
+  for (const [tag, attrs] of [['path', { d: 'M12 3 L22 20 H2 Z' }], ['line', { x1: 12, y1: 10, x2: 12, y2: 14.5 }], ['line', { x1: 12, y1: 17.2, x2: 12, y2: 17.3 }]]) {
+    const e = document.createElementNS(NS, tag);
+    for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
+    svg.append(e);
+  }
+  return svg;
+}
+
 function itemEl(s) {
   const item = el('div', 'item');
   item.dataset.id = s.id;
@@ -473,11 +497,13 @@ function itemEl(s) {
   const name = el('div', 'name');
   if (s.title_source === 'custom') name.append(el('span', 'mark-custom', '✎ '));
   if (s.running) name.append(el('span', 'mark-running', '● '));
+  if (s.no_reply) name.append(warnIcon());
   name.append(s.title);
   const meta = [ago(s), `${s.user_messages} msg`];
   if (s.git_branch && s.git_branch !== 'HEAD') meta.push(s.git_branch);
   if (s.running) meta.push(T.open);
   if (s.hidden || s.non_interactive) meta.push(T.hiddenReasons[s.hidden_reason || 'non-interactive']);
+  if (s.no_reply) { item.classList.add('broken'); item.title = T.noReply; }
   item.append(name, el('div', 'meta', meta.join(' · ')));
 
   const details = el('div', 'details');

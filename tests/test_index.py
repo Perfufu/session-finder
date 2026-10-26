@@ -1,3 +1,5 @@
+import os
+
 import pytest
 from conftest import ID_EMPTY, ID_MAIN, ID_RENAMED, ID_RUNNING, assistant, user, write_jsonl
 
@@ -37,9 +39,24 @@ def test_subagents_are_ignored(claude):
     assert len(build(claude, include_hidden=True)) == 4
 
 
-def test_session_without_reply_is_hidden(claude):
-    assert ID_EMPTY not in build(claude)
-    assert build(claude, include_hidden=True)[ID_EMPTY]["hidden"]
+def test_session_without_reply_is_flagged_not_hidden(claude):
+    sessions = build(claude)
+    assert sessions[ID_EMPTY]["no_reply"] and not sessions[ID_EMPTY]["hidden"]
+    assert not sessions[ID_MAIN]["no_reply"]
+    assert not sessions[ID_RUNNING]["no_reply"]
+
+
+def test_open_session_without_reply_yet_is_not_flagged(claude, tmp_path):
+    # a session that was just started and is waiting for its first answer is not a failure
+    (claude["root"] / "sessions" / "3.json").write_text(
+        '{"pid": %d, "sessionId": "%s", "status": "busy"}' % (os.getpid(), ID_EMPTY))
+    assert not build(claude)[ID_EMPTY]["no_reply"]
+
+
+def test_empty_shell_is_not_listed(tmp_path):
+    root = tmp_path / "claude"
+    write_jsonl(root / "projects" / "-p" / "88888888-8888-4888-8888-888888888888.jsonl", [{"type": "mode", "mode": "normal"}])
+    assert index.build_index(root=root, cache=tmp_path / "c.json") == []
 
 
 def test_running_sessions_and_orphan_pid(claude):

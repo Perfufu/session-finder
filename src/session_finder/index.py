@@ -144,9 +144,8 @@ def excluded_roots(folders):
 
 
 def hidden_reason(s, hide_non_interactive, excluded):
-    """Why a session is hidden by default (None = shown). Order = most specific to the user's config last."""
-    if s["assistant_messages"] == 0:
-        return "no-reply"  # never answered ("test" session, API error…)
+    """Why the user's config hides a session (None = shown). Only what the config asks for:
+    a conversation that went wrong (no reply) is flagged by `no_reply`, never hidden."""
     cwd = s["cwd"]
     if cwd and any(cwd == r or cwd.startswith(r.rstrip("/") + "/") for r in excluded):
         return "excluded"
@@ -184,6 +183,10 @@ def build_index(include_hidden=False, root=None, cache=None, hide_non_interactiv
         s["pid"] = run.get("pid")
         s["size"] = st.st_size
         s["non_interactive"] = s["entrypoint"] in NON_INTERACTIVE  # unknown / missing = interactive
+        if s["user_messages"] == 0 and s["assistant_messages"] == 0:
+            continue  # empty shell (claude opened and closed without a word): nothing to find or resume
+        # Claude never answered (offline, API error…): flagged, not hidden. Not while the session is open (just started).
+        s["no_reply"] = s["assistant_messages"] == 0 and not s["running"]
         s["hidden_reason"] = hidden_reason(s, hide_non_interactive, excluded)
         s["hidden"] = s["hidden_reason"] is not None
         if include_hidden or not s["hidden"]:
