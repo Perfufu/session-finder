@@ -76,7 +76,7 @@ Brings its own Python and Qt WebEngine: nothing to install with your package man
 
 **Updating**: `uv tool upgrade session-finder` (the tool lives in its own uv-managed environment, so your package manager won't touch it).
 
-**Launcher entry** (fuzzel, rofi, wofi, GNOME/KDE menus…): `session-finder --install-desktop` writes `~/.local/share/applications/session-finder.desktop` and the icon `~/.local/share/icons/hicolor/scalable/apps/session-finder.svg` (never overwrites; delete it to regenerate, e.g. if you move the command). It uses the command's absolute path, because launchers often lack `~/.local/bin` in their `PATH`.
+**Launcher entry** (fuzzel, rofi, wofi, GNOME/KDE menus…): `session-finder --install-desktop` writes `~/.local/share/applications/session-finder.desktop` and the icon `~/.local/share/icons/hicolor/scalable/apps/session-finder.svg` (never overwrites; delete it to regenerate, e.g. if you move the command). It uses the command's absolute path, because launchers often lack `~/.local/bin` in their `PATH`. On some desktops (seen on Ubuntu/GNOME), the entry and icon only show up properly after the next restart of the machine.
 
 ### Uninstalling
 
