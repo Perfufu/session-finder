@@ -44,6 +44,14 @@ Everything stays local. Session Finder **reads** Claude Code's folder (`~/.claud
 
 Needs [uv](https://docs.astral.sh/uv/) (step 1 below installs it if you don't have it). Two window engines, picked automatically:
 
+### Try without installing
+
+```sh
+uvx "session-finder[qt] @ git+https://github.com/Perfufu/session-finder"
+```
+
+Runs it once with the bundled Qt engine, without installing anything on your `PATH` (needs [uv](https://docs.astral.sh/uv/)). The first launch downloads Qt (~140 MB, ~650 MB in uv's cache); later launches reuse it. Don't run `--install-desktop` this way: the launcher entry would point into uv's cache. To keep it, use one of the installs below.
+
 ### Self-contained (any distro, any window manager)
 
 ```sh
