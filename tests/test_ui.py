@@ -69,13 +69,17 @@ def test_fuzzy_includes(tmp_path):
     code = re.search(r"// FUZZY-BEGIN\n(.*?)// FUZZY-END", app_js, re.S).group(1)
     cases = [  # (haystack, word, expected)
         ("fix the websocket reconnect", "websocket", True),    # exact
-        ("fix the websocket reconnect", "websockte", True),    # transposition
+        ("fix the websocket reconnect", "websockte", True),    # transposition (9 chars: budget 2 even without the Damerau rule)
         ("fix the websocket reconnect", "reconect", True),     # missing letter
         ("fix the websocket reconnect", "wbsocket", True),     # missing letter, 8 chars
         ("fix the websocket reconnect", "reconnecting", False),  # beyond the budget
         ("fix the websocket reconnect", "dockerfile", False),
         ("fix the websocket reconnect", "fox", False),         # short words stay exact
         ("fix the websocket reconnect", "", True),
+        ("sur dustcli", "dsut", True),                         # swapped neighbours in a 4-letter word (budget 1)
+        ("the tableau", "tabluea", True),                      # swap inside a longer word
+        ("sur dustcli", "dsxt", False),                        # a real substitution + the swap is not free
+        ("sur dustcli", "xdsut", False),                       # swap + extra letter: beyond the budget of 1
     ]
     script = code + "\nconst cases = " + json.dumps(cases) + """;
 for (const [h, w, want] of cases) if (fuzzyIncludes(h, w) !== want) { console.error('FAIL', h, w, want); process.exit(1); }

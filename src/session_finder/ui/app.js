@@ -134,13 +134,17 @@ function fuzzyIncludes(hay, word) {
   if (hay.includes(word)) return true;
   const k = fuzzyBudget(word);
   if (!k) return false;
+  let prev2 = null;
   let prev = Array.from({ length: word.length + 1 }, (_, i) => i);   // free start anywhere in hay
   for (let j = 0; j < hay.length; j++) {
     const row = [0];
-    for (let i = 1; i <= word.length; i++)
+    for (let i = 1; i <= word.length; i++) {
       row[i] = Math.min(prev[i] + 1, row[i - 1] + 1, prev[i - 1] + (word[i - 1] === hay[j] ? 0 : 1));
+      // two swapped neighbours ("dsut" for "dust", the commonest typo) cost 1, not 2
+      if (prev2 && i > 1 && word[i - 1] === hay[j - 1] && word[i - 2] === hay[j]) row[i] = Math.min(row[i], prev2[i - 2] + 1);
+    }
     if (row[word.length] <= k) return true;
-    prev = row;
+    prev2 = prev; prev = row;
   }
   return false;
 }
