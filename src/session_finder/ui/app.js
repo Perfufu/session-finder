@@ -81,7 +81,7 @@ const STRINGS = {
     openElsewhereTip: 'clic : sélectionner · déjà ouverte ailleurs',
     open: 'ouverte',
     noMatch: 'Aucune conversation ne correspond.',
-    fuzzyTag: 'Aucune correspondance exacte : résultats approchants',
+    fuzzyTag: 'Aucune correspondance exacte : résultats approximatifs',
     nothingHiddenTitle: 'Rien n\'est masqué (voir [sessions] dans la config)',
     showHiddenTitle: n => `Afficher les conversations masquées (${n})`,
     hideHiddenTitle: n => `Masquer les conversations masquées (${n})`,
