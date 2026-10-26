@@ -182,6 +182,7 @@ let showHidden = !!initialShowHidden;   // the eye button; remembered in the sta
 let sessions, rootPath, dirParent, nodes, links, nodeById;   // set by buildTree()
 
 function buildTree() {
+  const placed = new Map((nodes || []).map(n => [n.id, n]));   // previous layout, kept so a rebuild does not scramble the view
   sessions = allSessions.filter(s => showHidden || !s.hidden);
   const cwds = [...new Set(sessions.map(s => s.cwd))];
   rootPath = cwds.every(c => under(c, home)) ? home : '/';
@@ -210,7 +211,7 @@ function buildTree() {
   nodes = []; links = []; nodeById = new Map();
   for (const d of dirPaths) {
     const parent = dirParent.get(d);
-    const label = parent == null ? short(d) : d.slice(parent === '/' ? 1 : parent.length + 1);
+    const label = parent == null || d === home ? short(d) : d.slice(parent === '/' ? 1 : parent.length + 1);   // home is always "~", even under "/"
     nodes.push({ id: 'd:' + d, kind: 'dir', path: d, label, count: 0 });
     if (parent != null) links.push({ source: 'd:' + parent, target: 'd:' + d, kind: 'dir' });
   }
@@ -219,6 +220,14 @@ function buildTree() {
     links.push({ source: 'd:' + s.cwd, target: 's:' + s.id, kind: 'session' });
   }
   for (const n of nodes) nodeById.set(n.id, n);
+  for (const n of nodes) {
+    const old = placed.get(n.id);
+    if (old) { n.x = old.x; n.y = old.y; }
+  }
+  for (const l of links) {   // new node: start next to its parent
+    const t = nodeById.get(l.target), from = nodeById.get(l.source);
+    if (t.x == null && from.x != null) { t.x = from.x + Math.random() * 20 - 10; t.y = from.y + Math.random() * 20 - 10; }
+  }
   // folder weight = sessions it contains, subfolders included
   for (const s of sessions) for (let d = s.cwd; d != null; d = dirParent.get(d)) nodeById.get('d:' + d).count++;
 }
@@ -511,7 +520,11 @@ function move(step) {
 }
 
 // ---------- filters: search + folder ----------
-function applyFilters() {
+function frame() {
+  if (matches && matches.size) fg.zoomToFit(500, 80, n => lit.has(n.id));   // frame the results
+  else if (!matches) fg.zoomToFit(500, 50);
+}
+function applyFilters(reframe = true) {
   const words = norm(searchEl.value).split(/\s+/).filter(Boolean);
   if (!words.length && !scope) matches = null;
   else {
@@ -528,10 +541,9 @@ function applyFilters() {
       for (const [id, hay] of hays) if (words.every(w => fuzzyIncludes(hay, w))) matches.add(id);
   }
   render();
-  if (matches && matches.size) fg.zoomToFit(500, 80, n => lit.has(n.id));   // frame the results
-  else if (!matches) fg.zoomToFit(500, 50);
+  if (reframe) frame();
 }
-searchEl.addEventListener('input', applyFilters);
+searchEl.addEventListener('input', () => applyFilters());
 
 function setScope(path) {
   scope = path;
@@ -558,7 +570,8 @@ eyeBtn.addEventListener('click', () => {
   fg.graphData({ nodes, links });
   countEl.textContent = sessions.length;
   showEyeBtn();
-  applyFilters();
+  applyFilters(false);
+  setTimeout(frame, 1200);   // once the new nodes have settled: zooming now would frame them at their start position
   window.pywebview?.api.set_show_hidden(showHidden);
 });
 showEyeBtn();
