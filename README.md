@@ -28,7 +28,7 @@ session-finder --uninstall && uv tool uninstall session-finder
 ## What it does
 
 - **Graph**: launch folders form a tree, each conversation is a dot attached to its folder. Size = conversation length, colour = age, animated aura = conversation currently open.
-- **Search** (title, messages, path, git branch), case- and accent-insensitive. When nothing matches exactly, it falls back to a typo-tolerant match (one slip allowed from 4 letters, two from 7).
+- **Search** (title, messages, path, git branch), case- and accent-insensitive. When nothing matches exactly, it falls back to a typo-tolerant match (one slip allowed from 4 letters, two from 7); a small "≈ approximate" tag next to the counter tells you when that happens.
 - **Hidden conversations**: `claude -p` runs (non-interactive) and folders you exclude are hidden by default; the **eye button** next to the search box shows them (see [Configuration](#configuration)).
 - **Conversations that went wrong**: one Claude never answered (offline, API error…) stays in the list with a ⚠ triangle and a greyed title (a triangle node in the graph), so you can still reopen it.
 - **Click a folder**: filters the list to that folder.

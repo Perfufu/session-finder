@@ -34,6 +34,8 @@ const STRINGS = {
     openElsewhereTip: 'click: select · already open elsewhere',
     open: 'open',
     noMatch: 'No conversation matches.',
+    fuzzyTag: '≈ approximate',
+    fuzzyTitle: 'No exact match: showing approximate results',
     nothingHiddenTitle: 'Nothing is hidden (see [sessions] in the config)',
     showHiddenTitle: n => `Show hidden conversations (${n})`,
     hideHiddenTitle: n => `Hide hidden conversations (${n})`,
@@ -80,6 +82,8 @@ const STRINGS = {
     openElsewhereTip: 'clic : sélectionner · déjà ouverte ailleurs',
     open: 'ouverte',
     noMatch: 'Aucune conversation ne correspond.',
+    fuzzyTag: '≈ approchant',
+    fuzzyTitle: 'Aucune correspondance exacte : résultats approchants',
     nothingHiddenTitle: 'Rien n\'est masqué (voir [sessions] dans la config)',
     showHiddenTitle: n => `Afficher les conversations masquées (${n})`,
     hideHiddenTitle: n => `Masquer les conversations masquées (${n})`,
@@ -561,7 +565,9 @@ function frame() {
   if (matches && matches.size) fg.zoomToFit(500, 80, n => lit.has(n.id));   // frame the results
   else if (!matches) fg.zoomToFit(500, 50);
 }
+const fuzzyTagEl = document.getElementById('fuzzy-tag');
 function applyFilters(reframe = true) {
+  let fuzzy = false;   // true when the results are approximate matches (shown as a discreet tag in the title)
   const words = norm(searchEl.value).split(/\s+/).filter(Boolean);
   if (!words.length && !scope) matches = null;
   else {
@@ -575,8 +581,9 @@ function applyFilters(reframe = true) {
     }
     // nothing matches exactly: tolerate typos (exact results always come first, alone)
     if (!matches.size && words.length)
-      for (const [id, hay] of hays) if (words.every(w => fuzzyIncludes(hay, w))) matches.add(id);
+      for (const [id, hay] of hays) if (words.every(w => fuzzyIncludes(hay, w))) { matches.add(id); fuzzy = true; }
   }
+  fuzzyTagEl.hidden = !fuzzy;
   render();
   if (reframe) frame();
 }
