@@ -77,6 +77,8 @@ header { padding: 16px 16px 10px; }
 }
 #show-hidden:hover { color: var(--fg); border-color: var(--accent); }
 #show-hidden[aria-pressed="true"] { color: var(--accent); border-color: var(--accent); }
+#show-hidden:disabled { opacity: 0.4; cursor: default; }
+#show-hidden:disabled:hover { color: var(--fg-dim); border-color: rgba(var(--fg-rgb), 0.12); }
 #show-hidden[aria-pressed="true"] .slash { display: none; }
 #search {
   flex: 1; min-width: 0; padding: 9px 12px; border-radius: 10px; outline: none;

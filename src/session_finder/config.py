@@ -22,7 +22,7 @@ DEFAULTS = {
         "palette_sh": {"path": "", "active_file": ""},
     },
     "terminal": {"command": ""},
-    "sessions": {"hide_non_interactive": False, "exclude_folders": []},
+    "sessions": {"hide_non_interactive": True, "exclude_folders": []},
 }
 
 

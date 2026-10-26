@@ -49,8 +49,9 @@ command = ""
 # deleted: the eye button next to the search box (or `session-finder --all`)
 # shows them again. A conversation Claude never replied to is always hidden.
 
-# Hide non-interactive conversations: `claude -p "..."` and Agent SDK runs.
-hide_non_interactive = false
+# Hide non-interactive conversations: `claude -p "..."` and Agent SDK runs
+# (set to false to list them like any other conversation).
+hide_non_interactive = true
 
 # Hide every conversation started in these folders (and their subfolders),
 # e.g. a folder where a scheduled `claude -p` job runs. "~" is expanded.

@@ -34,6 +34,7 @@ const STRINGS = {
     openElsewhereTip: 'click: select · already open elsewhere',
     open: 'open',
     noMatch: 'No conversation matches.',
+    nothingHiddenTitle: 'Nothing is hidden (see [sessions] in the config)',
     showHiddenTitle: n => `Show hidden conversations (${n})`,
     hideHiddenTitle: n => `Hide hidden conversations (${n})`,
     hiddenReasons: { excluded: 'excluded folder', 'non-interactive': 'non-interactive (claude -p)' },
@@ -79,6 +80,7 @@ const STRINGS = {
     openElsewhereTip: 'clic : sélectionner · déjà ouverte ailleurs',
     open: 'ouverte',
     noMatch: 'Aucune conversation ne correspond.',
+    nothingHiddenTitle: 'Rien n\'est masqué (voir [sessions] dans la config)',
     showHiddenTitle: n => `Afficher les conversations masquées (${n})`,
     hideHiddenTitle: n => `Masquer les conversations masquées (${n})`,
     hiddenReasons: { excluded: 'dossier exclu', 'non-interactive': 'non interactive (claude -p)' },
@@ -597,7 +599,8 @@ const eyeBtn = document.getElementById('show-hidden');
 const hiddenCount = allSessions.filter(s => s.hidden).length;
 function showEyeBtn() {
   eyeBtn.setAttribute('aria-pressed', showHidden);
-  eyeBtn.title = (showHidden ? T.hideHiddenTitle : T.showHiddenTitle)(hiddenCount);
+  eyeBtn.disabled = hiddenCount === 0;
+  eyeBtn.title = hiddenCount === 0 ? T.nothingHiddenTitle : (showHidden ? T.hideHiddenTitle : T.showHiddenTitle)(hiddenCount);
 }
 eyeBtn.addEventListener('click', () => {
   showHidden = !showHidden;
