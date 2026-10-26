@@ -28,7 +28,9 @@ session-finder --uninstall && uv tool uninstall session-finder
 ## What it does
 
 - **Graph**: launch folders form a tree, each conversation is a dot attached to its folder. Size = conversation length, colour = age, animated aura = conversation currently open.
-- **Search** (title, messages, path, git branch), case- and accent-insensitive.
+- **Search** (title, messages, path, git branch), case- and accent-insensitive. When nothing matches exactly, it falls back to a typo-tolerant match (one slip allowed from 4 letters, two from 7).
+- **Hidden conversations**: `claude -p` runs (non-interactive) and folders you exclude are hidden by default; the **eye button** next to the search box shows them (see [Configuration](#configuration)).
+- **Conversations that went wrong**: one Claude never answered (offline, API error…) stays in the list with a ⚠ triangle and a greyed title (a triangle node in the graph), so you can still reopen it.
 - **Click a folder**: filters the list to that folder.
 - **Resume** (Enter, double-click or button): opens a terminal in the conversation's folder running `claude --resume <id>`; when you quit Claude, you stay in a shell there.
 - **Palettes**: built-in presets, personal palettes, light/dark — picked right in the window.
@@ -117,6 +119,7 @@ session-finder --init-config      # creates ~/.config/session-finder/config.toml
 Every option is explained in it: language, palette, light/dark, translucent background, terminal. A missing or invalid file never prevents anything from working (defaults + a warning).
 
 - **Language**: the **Language menu** in the window (top right, e.g. `FR ▾`) switches instantly and is remembered. Default: your system locale (`[ui] language` = `"auto"`, `"en"` or `"fr"` in the config; the window's choice takes precedence). The window is translated; terminal messages (`--help`, errors) stay in English. Missing a language? A translation is one more object in `STRINGS` (top of `ui/app.js`) plus its code in `LANGUAGES` (`config.py`): pull requests welcome.
+- **Hidden conversations** (`[sessions]`): `hide_non_interactive` (default `true`) hides conversations started with `claude -p` or the Agent SDK, detected from the `entrypoint` Claude Code writes in each conversation file (`sdk-cli`, `sdk-ts`, `sdk-py`); `exclude_folders = ["~/scripts/nightly"]` hides every conversation started in these folders and their subfolders. Nothing is deleted: the **eye button** next to the search box (remembered between launches; greyed when nothing is hidden) or `session-finder --table --all` shows them again. Set `hide_non_interactive = false` to list `claude -p` runs like any other conversation.
 - **Terminal**: `[terminal] command`, otherwise `$TERMINAL`, otherwise the first one found among kitty, ghostty, foot, alacritty, wezterm, gnome-terminal, konsole, xfce4-terminal, xterm.
 - **Translucent background**: only if your compositor blurs what is behind windows, otherwise text gets hard to read.
 

@@ -33,8 +33,8 @@ uv pip install -e . pytest
 .venv/bin/session-finder              # window (user view: their config, palettes, choices)
 .venv/bin/session-finder --defaults   # a new user's view (writes nothing)
 .venv/bin/session-finder --engine qt  # force an engine (auto | gtk | qt)
-.venv/bin/session-finder --table      # quick check in the terminal (--all: hidden sessions)
-.venv/bin/pytest -q                   # 70 tests
+.venv/bin/session-finder --table      # quick check in the terminal (--all: also the sessions hidden by [sessions])
+.venv/bin/pytest -q                   # 82 tests
 ```
 
 Testing the self-contained Qt engine like a user without system packages: a separate venv **without** `--system-site-packages` (e.g. `uv venv --python 3.13 /tmp/qtenv && VIRTUAL_ENV=/tmp/qtenv uv pip install -e ".[qt]"`).
@@ -43,8 +43,8 @@ Testing the self-contained Qt engine like a user without system packages: a sepa
 
 | File | Role |
 |---|---|
-| `index.py` | **Read-only** scan of `<claude>/projects/*/*.jsonl` (`CLAUDE_CONFIG_DIR` honoured), cache `~/.cache/session-finder/` invalidated by (mtime, size) |
-| `config.py` | `~/.config/session-finder/config.toml` (defaults if missing/invalid); shipped templates copied, never overwriting; `LANGUAGES` + `resolve_language` |
+| `index.py` | **Read-only** scan of `<claude>/projects/*/*.jsonl` (`CLAUDE_CONFIG_DIR` honoured), cache `~/.cache/session-finder/` invalidated by (mtime, size; `CACHE_VERSION` bumped when a parsed field is added). Per session: `non_interactive` (from `entrypoint`), `hidden` + `hidden_reason` (`excluded` / `non-interactive`, from the config only), `no_reply` |
+| `config.py` | `~/.config/session-finder/config.toml` (defaults if missing/invalid; `[sessions]` → `hiding()` feeds `build_index`); shipped templates copied, never overwriting; `LANGUAGES` + `resolve_language` |
 | `session-finder.desktop`, `session-finder.svg` | Launcher entry template + icon (default dark preset colours, installed under `~/.local/share/icons/hicolor/scalable/apps/`) (`@EXEC@` filled in by `--install-desktop`: absolute path, since launchers often lack `~/.local/bin`); `StartupWMClass` must equal `APP_ID` |
 | `config.example.toml`, `palette.example.toml` | Commented templates (`--init-config`, `--new-palette NAME`); a test guarantees the config template = `DEFAULTS` |
 | `themes.py` | Palette catalogue: built-in `preset:*` (default + red/green/yellow/blue/purple/orange: shared neutral backgrounds, only the accent pair differs), `user:*` (`palettes/*.toml`), `file:*` ("Other…"), `palette-sh` (config only); colours validated as `#rrggbb` |
@@ -83,6 +83,10 @@ Testing the self-contained Qt engine like a user without system packages: a sepa
 - **Presets**: one neutral dark/light background shared by all, only `ACCENT`/`ACCENT_ALT` change (distinct character per preset); `green` moves `SUCCESS` to teal so open sessions stay distinguishable.
 - **uv install**: README documents `command -v uv || curl … astral.sh/uv/install.sh | sh` (no install script in the repo) + the `PATH` pitfall.
 - **Languages**: `[ui] language` = `auto` (system locale: `LC_ALL` > `LC_MESSAGES` > `LANG`, English if unsupported) / `en` / `fr`, resolved in Python (testable) and passed as `data.language`. **Language menu** in the window (same pattern as the Palette menu: `.popup-menu`, one entry per `STRINGS` language + "System language"), applied instantly via `applyLanguage()` (re-applies the static texts, buttons, hint and re-renders), remembered in the state (`set_language`), never in `config.toml`; priority window choice > config > system. A new language appears in the menu by itself (`STRINGS.<code>.name`). Any text set once at startup must be re-applied in `applyLanguage()`. `T = {...STRINGS.en, ...STRINGS[language]}`: a missing key falls back to English. Python/CLI messages stay English. A test keeps `STRINGS` languages = `config.LANGUAGES` and every translation's keys (and function-ness) = English's.
+- **Hidden sessions** (roadmap 7/8). The filter hides **only what the config asks for**, nothing else: `[sessions] hide_non_interactive` (default **true**) and `exclude_folders` (folder + subfolders, `~` expanded). `claude -p` is detected from the `entrypoint` field on each `.jsonl` line: `cli` = interactive, `sdk-cli` = `-p`, `sdk-ts` / `sdk-py` = Agent SDK (values read in the claude 2.1.294 binary, **and checked by running a real `claude -p`**); missing or unknown = interactive. The window receives every session, flagged (`hidden`, `hidden_reason`), and the **eye button** next to the search box shows/hides the hidden ones live (graph rebuilt, node positions kept, reframed after settling), remembered in the state (`set_show_hidden`), greyed when nothing is hidden; `--all` does the same in the CLI. Default first chosen as "visible", then switched to **hidden by default** after seeing the eye do nothing with the default config: an eye that has nothing to toggle is a trap.
+- **"No reply" is a mark, not a filter**: a conversation Claude never answered (offline, API error…) is **never hidden**; it gets `no_reply` → warning triangle + greyed title in the list, greyed triangle node with a "!" in the graph, a legend line (only when one exists). Not flagged while the session is open (just started). Colour = the palette's `WARNING` (never the accent: a red preset would be confusable). A conversation with no user and no assistant message (empty shell) is not listed. Rule behind both: a filter does one thing; anything else that shows up must be explained, not silently filtered.
+- **Fuzzy search** (roadmap 9): exact substring first; only when it finds nothing, a per-word approximate substring match (Sellers / Levenshtein, budget 0 edits under 4 letters, 1 from 4, 2 from 7). No indicator that results are approximate (could be added). `fuzzyIncludes` sits between `FUZZY-BEGIN`/`FUZZY-END` in `app.js` so `tests/test_ui.py` can run it with node.
+- **Uninstall**: `--uninstall` (+ `--yes`) removes everything the tool wrote outside its uv environment, then points to `uv tool uninstall session-finder` (see `uninstall.py`).
 - **JS safety net**: a tiny inline script in `index.html` (separate from `app.js`, since a syntax error there runs none of its code) catches `error` / `unhandledrejection` and shows an English popup with message + stack (fallback `file:line:col`: the stack can be empty). Only the first error is shown. Before `app.js` has finished (`window.__appReady` set on its last line) = **Close only** (nothing usable); afterwards = **Close / Continue** (the error may be harmless; after Continue, silence). Popup text lives in `STRINGS` with an identical English fallback inline (a test keeps them in sync). `tests/test_ui.py` runs `node --check` on `app.js` and the inline scripts (skipped without `node`).
 
 ## Measured facts (dev laptop, Arch + niri)
@@ -104,9 +108,9 @@ Public repository: https://github.com/Perfufu/session-finder (MIT). Before each 
 4. **Idea — other AI tools as "sources"**: only `index.py` (reading `~/.claude`) and the resume command (`claude --resume`) are specific to Claude Code; graph, list, search, palettes and terminal launchers are not. Supporting another CLI tool (Dust CLI, console ChatGPT clients…) = a source interface: list its conversations (id, folder, title, dates, running state) + the command that resumes one. The "for Claude Code" name would then become too narrow. **Stays an idea** until it can be expressed as a source behind the same finder purpose (see Scope); nothing to do before then.
 5. ~~JS safety net~~ — **done**, see Decisions.
 6. **Open question — launcher entry discoverability**: `--install-desktop` is one explicit command (a wheel cannot write to `~/.local/share`, `uv tool upgrade` runs no hook). Option under consideration: a discreet startup hint when the entry is missing (more discoverable, but chattier, needs a way to silence it). **Pending feedback from the target users** (colleagues, friends) — decide after that.
-7. **To do — exclude folders**: config option listing folders whose conversations are hidden (e.g. scheduled `claude -p` jobs cluttering the list). Same mechanism as the existing hidden sessions (`--all` shows them).
-8. **To do — hide non-interactive sessions (`claude -p`)**: only if the `.jsonl` lets us tell them apart reliably (to be checked first, defensive reading as always). Otherwise folded into item 7.
-9. **To do — fuzzy matching in the search**: tolerate typos / partial words when nothing matches exactly. JS side, no new dependency.
+7. ~~Exclude folders~~ — **done** (`[sessions] exclude_folders`), see Decisions.
+8. ~~Hide non-interactive sessions (`claude -p`)~~ — **done** (`entrypoint` is reliable, verified with a real run), see Decisions.
+9. ~~Fuzzy matching in the search~~ — **done**, see Decisions.
 10. **To do — README: try without installing** with `uvx "session-finder[qt] @ git+https://github.com/Perfufu/session-finder"`.
 
 Ideas received and ruled out (control tower, daemon client, mods, opening several terminals in a folder): see **Scope → Out of scope**; not repeated here.
