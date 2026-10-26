@@ -21,6 +21,7 @@ const STRINGS = {
     legendFolder: 'folder · click: filter',
     legendSession: 'conversation · double-click: resume',
     legendRunning: 'open conversation',
+    legendNoReply: 'no reply (something went wrong)',
     removeFilter: 'Remove filter',
     justNow: 'just now',
     minutesAgo: n => `${n} min ago`,
@@ -65,6 +66,7 @@ const STRINGS = {
     legendFolder: 'dossier · clic : filtrer',
     legendSession: 'conversation · double-clic : reprendre',
     legendRunning: 'conversation ouverte',
+    legendNoReply: 'sans réponse (un problème est survenu)',
     removeFilter: 'Retirer le filtre',
     justNow: 'à l’instant',
     minutesAgo: n => `il y a ${n} min`,
@@ -180,6 +182,8 @@ rootStyle.setProperty('--main-alpha', theme.translucent ? 0.82 : 1);
 const parentOf = p => p.slice(0, p.lastIndexOf('/')) || '/';
 const under = (p, r) => p === r || p.startsWith(r === '/' ? '/' : r + '/');
 for (const s of allSessions) s.cwd = s.cwd || home;
+document.getElementById('legend-noreply').hidden = !allSessions.some(s => s.no_reply);   // only when there is one to explain
+document.querySelector('.lg-warn').append(warnIcon());
 let showHidden = !!initialShowHidden;   // the eye button; remembered in the state
 let sessions, rootPath, dirParent, nodes, links, nodeById;   // set by buildTree()
 
@@ -408,6 +412,11 @@ function drawNode(n, ctx, scale) {
       ctx.fillStyle = rgba(P.FG_DIM, 0.55); ctx.fill();
       ctx.shadowBlur = 0;
       ctx.lineWidth = 1.2 / scale; ctx.strokeStyle = P.WARNING; ctx.stroke();
+      // the "!" inside: a bar and a dot
+      ctx.strokeStyle = P.FG; ctx.fillStyle = P.FG; ctx.lineWidth = t * 0.17; ctx.lineCap = 'round';
+      ctx.beginPath(); ctx.moveTo(n.x, n.y - t * 0.3); ctx.lineTo(n.x, n.y + t * 0.2); ctx.stroke();
+      ctx.beginPath(); ctx.arc(n.x, n.y + t * 0.5, t * 0.1, 0, 2 * Math.PI); ctx.fill();
+      ctx.lineCap = 'butt';
     } else {
       ctx.fillStyle = recency(n.s);
       ctx.fill();
@@ -482,7 +491,7 @@ function warnIcon() {
   const NS = 'http://www.w3.org/2000/svg';
   const svg = document.createElementNS(NS, 'svg');
   svg.setAttribute('viewBox', '0 0 24 24'); svg.setAttribute('class', 'warn-ico'); svg.setAttribute('aria-hidden', 'true');
-  for (const [tag, attrs] of [['path', { d: 'M12 3 L22 20 H2 Z' }], ['line', { x1: 12, y1: 10, x2: 12, y2: 14.5 }], ['line', { x1: 12, y1: 17.2, x2: 12, y2: 17.3 }]]) {
+  for (const [tag, attrs] of [['path', { d: 'M12 3 L22 20 H2 Z' }], ['line', { x1: 12, y1: 10, x2: 12, y2: 14.5, class: 'bang' }], ['line', { x1: 12, y1: 17.4, x2: 12, y2: 17.5, class: 'bang' }]]) {
     const e = document.createElementNS(NS, tag);
     for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
     svg.append(e);
