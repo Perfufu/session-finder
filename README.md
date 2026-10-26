@@ -124,7 +124,7 @@ Optional. To start from a commented template:
 session-finder --init-config      # creates ~/.config/session-finder/config.toml (never overwrites)
 ```
 
-Every option is explained in it: language, palette, light/dark, translucent background, terminal. A missing or invalid file never prevents anything from working (defaults + a warning).
+Every option is explained in it: language, palette, light/dark, translucent background, hidden conversations, terminal. A missing or invalid file never prevents anything from working (defaults + a warning).
 
 - **Language**: the **Language menu** in the window (top right, e.g. `FR ▾`) switches instantly and is remembered. Default: your system locale (`[ui] language` = `"auto"`, `"en"` or `"fr"` in the config; the window's choice takes precedence). The window is translated; terminal messages (`--help`, errors) stay in English. Missing a language? A translation is one more object in `STRINGS` (top of `ui/app.js`) plus its code in `LANGUAGES` (`config.py`): pull requests welcome.
 - **Hidden conversations** (`[sessions]`): `hide_non_interactive` (default `true`) hides conversations started with `claude -p` or the Agent SDK, detected from the `entrypoint` Claude Code writes in each conversation file (`sdk-cli`, `sdk-ts`, `sdk-py`); `exclude_folders = ["~/scripts/nightly"]` hides every conversation started in these folders and their subfolders. Nothing is deleted: the **eye button** next to the search box (remembered between launches; greyed when nothing is hidden) or `session-finder --table --all` shows them again. Set `hide_non_interactive = false` to list `claude -p` runs like any other conversation.
