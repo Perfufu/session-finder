@@ -20,6 +20,9 @@ session-finder
 
 # Update (later)
 uv tool upgrade session-finder
+
+# Uninstall (later)
+session-finder --uninstall && uv tool uninstall session-finder
 ```
 
 ## What it does
@@ -61,6 +64,15 @@ Brings its own Python and Qt WebEngine: nothing to install with your package man
 **Updating**: `uv tool upgrade session-finder` (the tool lives in its own uv-managed environment, so your package manager won't touch it).
 
 **Launcher entry** (fuzzel, rofi, wofi, GNOME/KDE menus…): `session-finder --install-desktop` writes `~/.local/share/applications/session-finder.desktop` and the icon `~/.local/share/icons/hicolor/scalable/apps/session-finder.svg` (never overwrites; delete it to regenerate, e.g. if you move the command). It uses the command's absolute path, because launchers often lack `~/.local/bin` in their `PATH`.
+
+### Uninstalling
+
+```sh
+session-finder --uninstall        # lists what it will delete, asks, then deletes
+uv tool uninstall session-finder  # removes the program itself
+```
+
+`uv tool uninstall` alone only removes the program: your config, personal palettes, cache, remembered choices and launcher entry would stay behind. `--uninstall` deletes exactly these (it prints the list first; `--yes` skips the question): `~/.config/session-finder/`, `~/.cache/session-finder/`, `~/.local/state/session-finder/`, and the launcher entry and icon under `~/.local/share/` if you ran `--install-desktop`. Run it **before** `uv tool uninstall`, since it needs the command. It never touches Claude Code or your conversations (`~/.claude`). If you made an alias or shortcut, remove it yourself.
 
 ### System WebKitGTK (lighter, if you already have it)
 

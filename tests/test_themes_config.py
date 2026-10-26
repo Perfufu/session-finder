@@ -258,3 +258,26 @@ def test_no_engine_prints_install_help(monkeypatch, capsys):
     assert cli.main([]) == 1
     err = capsys.readouterr().err
     assert "session-finder[qt]" in err and "--table" in err
+
+
+def test_uninstall_removes_only_session_finder_data(xdg, monkeypatch, capsys):
+    monkeypatch.setenv("XDG_DATA_HOME", str(xdg / "data"))
+    monkeypatch.setenv("XDG_CACHE_HOME", str(xdg / "cache"))
+    monkeypatch.setenv("XDG_RUNTIME_DIR", str(xdg / "run"))
+    monkeypatch.setenv("CLAUDE_CONFIG_DIR", str(xdg / "claude"))
+    monkeypatch.setattr("sys.argv", ["/opt/bin/session-finder"])
+    (xdg / "run").mkdir()
+    claude_file = write(xdg / "claude" / "projects" / "x" / "s.jsonl", "{}")
+    assert cli.main(["--new-palette", "mine"]) == 0
+    assert cli.main(["--install-desktop"]) == 0
+    write(app.state_path(), "{}")
+    write(xdg / "cache" / "session-finder" / "index.json", "{}")
+    assert cli.main(["--uninstall"]) == 1            # not a terminal, no --yes: nothing deleted
+    assert config.palettes_dir().exists()
+    assert cli.main(["--uninstall", "--yes"]) == 0
+    for p in (config.config_dir(), app.state_path().parent, xdg / "cache" / "session-finder",
+              config.applications_dir() / "session-finder.desktop", config.icons_dir() / "session-finder.svg"):
+        assert not p.exists()
+    assert (xdg / "claude" / "projects" / "x" / "s.jsonl").exists()
+    assert "uv tool uninstall session-finder" in capsys.readouterr().out
+    assert cli.main(["--uninstall", "--yes"]) == 0   # idempotent

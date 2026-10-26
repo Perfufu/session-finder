@@ -69,6 +69,9 @@ def main(argv=None):
                         help="create a personal palette ~/.config/session-finder/palettes/NAME.toml from the template")
     parser.add_argument("--install-desktop", action="store_true",
                         help="add Session Finder to your application launcher (+ icon, under ~/.local/share)")
+    parser.add_argument("--uninstall", action="store_true",
+                        help="delete config, cache, remembered choices and launcher entry (lists them, asks first)")
+    parser.add_argument("--yes", action="store_true", help="with --uninstall: do not ask for confirmation")
     parser.add_argument("--report", action="store_true",
                         help="print a diagnostic block to paste into a bug report (no path, no conversation content)")
     parser.add_argument("--debug", action="store_true", help="window with developer tools")
@@ -87,6 +90,10 @@ def main(argv=None):
             ok, message = config.create_from_example(config.config_path(), "config.example.toml")
         print(f"session-finder: {message}", file=sys.stdout if ok else sys.stderr)
         return 0 if ok else 1
+
+    if args.uninstall:
+        from . import uninstall
+        return uninstall.run(assume_yes=args.yes)
 
     if args.report:
         print(report.render(report.collect()))

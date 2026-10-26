@@ -34,7 +34,7 @@ uv pip install -e . pytest
 .venv/bin/session-finder --defaults   # a new user's view (writes nothing)
 .venv/bin/session-finder --engine qt  # force an engine (auto | gtk | qt)
 .venv/bin/session-finder --table      # quick check in the terminal (--all: hidden sessions)
-.venv/bin/pytest -q                   # 69 tests
+.venv/bin/pytest -q                   # 70 tests
 ```
 
 Testing the self-contained Qt engine like a user without system packages: a separate venv **without** `--system-site-packages` (e.g. `uv venv --python 3.13 /tmp/qtenv && VIRTUAL_ENV=/tmp/qtenv uv pip install -e ".[qt]"`).
@@ -51,6 +51,7 @@ Testing the self-contained Qt engine like a user without system packages: a sepa
 | `launchers.py` | Terminal: config > `$TERMINAL` > detection (9 known, unknown = `-e`); fish handled |
 | `niri.py` | Optional (detected through `NIRI_SOCKET`): focus an already-open session, single instance |
 | `engines.py` | Window engine: `gtk` (system WebKitGTK) preferred when usable, else `qt` (bundled Qt WebEngine, extra `[qt]`); sets the Wayland app-id per toolkit |
+| `uninstall.py` | `--uninstall`: lists then deletes (confirmation, or `--yes`) the fixed paths the tool wrote: config dir, cache dir, state dir, `.desktop` + icon, lock file; never `~/.claude`; prints `uv tool uninstall session-finder` for the last step (a running program does not delete its own environment) |
 | `report.py` | `--report`: diagnostic block for bug reports (versions, system, engine, Claude Code version of the newest conversations); never a path or conversation content (a test checks it) |
 | `app.py` / `cli.py` | pywebview window (page assembled in memory, no server; state `~/.local/state/session-finder/`) / `session-finder` command |
 | `ui/`, `vendor/` | HTML/CSS/JS interface (no hard-coded colour; **all user-facing text in `STRINGS` at the top of `app.js`** + `data-i18n*` attributes) + bundled force-graph 1.51.4 (provenance: `vendor/README.md`) |
