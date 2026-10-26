@@ -34,8 +34,7 @@ const STRINGS = {
     openElsewhereTip: 'click: select · already open elsewhere',
     open: 'open',
     noMatch: 'No conversation matches.',
-    fuzzyTag: '≈ approximate',
-    fuzzyTitle: 'No exact match: showing approximate results',
+    fuzzyTag: 'No exact match: showing approximate results',
     nothingHiddenTitle: 'Nothing is hidden (see [sessions] in the config)',
     showHiddenTitle: n => `Show hidden conversations (${n})`,
     hideHiddenTitle: n => `Hide hidden conversations (${n})`,
@@ -82,8 +81,7 @@ const STRINGS = {
     openElsewhereTip: 'clic : sélectionner · déjà ouverte ailleurs',
     open: 'ouverte',
     noMatch: 'Aucune conversation ne correspond.',
-    fuzzyTag: '≈ approchant',
-    fuzzyTitle: 'Aucune correspondance exacte : résultats approchants',
+    fuzzyTag: 'Aucune correspondance exacte : résultats approchants',
     nothingHiddenTitle: 'Rien n\'est masqué (voir [sessions] dans la config)',
     showHiddenTitle: n => `Afficher les conversations masquées (${n})`,
     hideHiddenTitle: n => `Masquer les conversations masquées (${n})`,
@@ -567,7 +565,7 @@ function frame() {
 }
 const fuzzyTagEl = document.getElementById('fuzzy-tag');
 function applyFilters(reframe = true) {
-  let fuzzy = false;   // true when the results are approximate matches (shown as a discreet tag in the title)
+  let fuzzy = false;   // true when the results are approximate matches (shown as a discreet line under the search box)
   const words = norm(searchEl.value).split(/\s+/).filter(Boolean);
   if (!words.length && !scope) matches = null;
   else {

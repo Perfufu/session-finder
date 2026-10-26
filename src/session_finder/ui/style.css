@@ -68,7 +68,7 @@ header { padding: 16px 16px 10px; }
 #mode:hover, #palette:hover, #language:hover { color: var(--fg); border-color: var(--accent); }
 #palette { max-width: 170px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 #mode[hidden] { display: none; }
-#fuzzy-tag { color: var(--fg-dim); font-weight: normal; font-size: 11px; margin-left: 8px; cursor: help; }
+#fuzzy-tag { color: var(--fg-dim); font-size: 11px; margin: 6px 4px 0; }
 #fuzzy-tag[hidden] { display: none; }
 #count { color: var(--fg-dim); font-weight: normal; font-size: 12px; margin-left: 6px; }
 .search-row { display: flex; gap: 8px; }
