@@ -90,6 +90,11 @@ class Api:
         if setting == "auto" or setting in config.LANGUAGES:
             self._remember("language", setting)
 
+    def set_show_hidden(self, shown):
+        """Remembers the state of the eye button (hidden conversations shown or not)."""
+        if isinstance(shown, bool):
+            self._remember("show_hidden", shown)
+
     def set_palette(self, choice_id):
         """Remembers the choice made in the Palette menu; None = back to the config."""
         if choice_id is None or isinstance(choice_id, str):
@@ -168,8 +173,9 @@ def run(engine, debug=False, defaults=False):
     terminal = launchers.find_terminal(cfg["terminal"]["command"])
     setting = language_setting(state, cfg)
 
-    data = {"sessions": index.build_index(), "theme": theme, "defaults_view": defaults,
+    data = {"sessions": index.build_index(include_hidden=True, **config.hiding(cfg)), "theme": theme, "defaults_view": defaults,
             "home": str(Path.home()), "can_focus": niri.available(),
+            "show_hidden": bool(state.get("show_hidden")),
             "language_setting": setting, "language": config.resolve_language(setting),
             "system_language": config.resolve_language("auto")}
 

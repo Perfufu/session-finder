@@ -12,7 +12,7 @@ import os
 import re
 from pathlib import Path
 
-CACHE_VERSION = 1
+CACHE_VERSION = 2   # 2: + entrypoint
 
 # "user" messages not typed by the user: output of /commands
 COMMAND_WRAPPER = re.compile(r"^\s*<(command-name|command-message|command-args|local-command-stdout|local-command-caveat)\b")
@@ -44,6 +44,11 @@ def user_texts(entry):
     return [t for t in blocks if isinstance(t, str) and t.strip() and not COMMAND_WRAPPER.match(t)]
 
 
+# How Claude Code was started, as written on each line: `cli` = interactive; `claude -p`
+# becomes `sdk-cli`, the Agent SDKs `sdk-ts` / `sdk-py` (read in the binary, claude 2.1.294).
+NON_INTERACTIVE = ("sdk-cli", "sdk-ts", "sdk-py")
+
+
 def clean(text, limit=200):
     text = PASTED.sub("[pasted]", text)
     text = " ".join(text.split())
@@ -56,7 +61,7 @@ def parse_session(path):
         "id": path.stem, "cwd": None, "git_branch": None,
         "created": None, "updated": None,
         "ai_title": None, "custom_title": None,
-        "first_prompt": None, "last_prompt": None,
+        "first_prompt": None, "last_prompt": None, "entrypoint": None,
         "user_messages": 0, "assistant_messages": 0,
     }
     with path.open(errors="replace") as fh:
@@ -69,6 +74,8 @@ def parse_session(path):
                 continue
             t = e.get("type")
             ts = e.get("timestamp")
+            if s["entrypoint"] is None and isinstance(e.get("entrypoint"), str):
+                s["entrypoint"] = e["entrypoint"]
             if isinstance(ts, str):
                 s["created"] = s["created"] or ts
                 s["updated"] = ts
@@ -131,7 +138,25 @@ def save_cache(cache, entries):
         pass  # optional cache: skipped if the folder is not writable
 
 
-def build_index(include_hidden=False, root=None, cache=None):
+def excluded_roots(folders):
+    """Config folders as absolute paths ("~" expanded); anything that is not a string is ignored."""
+    return [os.path.abspath(os.path.expanduser(f)) for f in folders if isinstance(f, str) and f.strip()]
+
+
+def hidden_reason(s, hide_non_interactive, excluded):
+    """Why a session is hidden by default (None = shown). Order = most specific to the user's config last."""
+    if s["assistant_messages"] == 0:
+        return "no-reply"  # never answered ("test" session, API error…)
+    cwd = s["cwd"]
+    if cwd and any(cwd == r or cwd.startswith(r.rstrip("/") + "/") for r in excluded):
+        return "excluded"
+    if hide_non_interactive and s["non_interactive"]:
+        return "non-interactive"
+    return None
+
+
+def build_index(include_hidden=False, root=None, cache=None, hide_non_interactive=False, exclude_folders=()):
+    excluded = excluded_roots(exclude_folders)
     root = root or claude_dir()
     cache = cache or default_cache()
     old = load_cache(cache)
@@ -158,7 +183,9 @@ def build_index(include_hidden=False, root=None, cache=None):
         s["running"] = run.get("status")
         s["pid"] = run.get("pid")
         s["size"] = st.st_size
-        s["hidden"] = s["assistant_messages"] == 0  # never answered ("test" session, API error…)
+        s["non_interactive"] = s["entrypoint"] in NON_INTERACTIVE  # unknown / missing = interactive
+        s["hidden_reason"] = hidden_reason(s, hide_non_interactive, excluded)
+        s["hidden"] = s["hidden_reason"] is not None
         if include_hidden or not s["hidden"]:
             sessions.append(s)
 

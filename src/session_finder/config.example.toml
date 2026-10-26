@@ -43,3 +43,16 @@ active_file = ""
 # first one found among: kitty, ghostty, foot, alacritty, wezterm,
 # gnome-terminal, konsole, xfce4-terminal, xterm.
 command = ""
+
+[sessions]
+# Conversations that are hidden from the list and the graph. They are not
+# deleted: the eye button next to the search box (or `session-finder --all`)
+# shows them again. A conversation Claude never replied to is always hidden.
+
+# Hide non-interactive conversations: `claude -p "..."` and Agent SDK runs.
+hide_non_interactive = false
+
+# Hide every conversation started in these folders (and their subfolders),
+# e.g. a folder where a scheduled `claude -p` job runs. "~" is expanded.
+# exclude_folders = ["~/scripts/nightly-report"]
+exclude_folders = []

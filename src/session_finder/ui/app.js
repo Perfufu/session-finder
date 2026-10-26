@@ -1,8 +1,8 @@
 'use strict';
-// Data injected by app.py: sessions (index.py), theme (themes.py: palette
+// Data injected by app.py: sessions (index.py; the hidden ones are flagged, see showHidden), theme (themes.py: palette
 // catalogue + current choice), home, can_focus (bring an open session's window
 // to the front: only under niri), defaults_view (default view, --defaults)
-const { sessions, theme, home, can_focus: canFocus, defaults_view: defaultsView,
+const { sessions: allSessions, show_hidden: initialShowHidden, theme, home, can_focus: canFocus, defaults_view: defaultsView,
         language_setting: initialLanguageSetting, language: initialLanguage,
         system_language: systemLanguage } = window.__DATA__;
 let P;   // current palette, read on every graph frame
@@ -33,6 +33,9 @@ const STRINGS = {
     openElsewhereTip: 'click: select · already open elsewhere',
     open: 'open',
     noMatch: 'No conversation matches.',
+    showHiddenTitle: n => `Show hidden conversations (${n})`,
+    hideHiddenTitle: n => `Hide hidden conversations (${n})`,
+    hiddenReasons: { 'no-reply': 'no reply', excluded: 'excluded folder', 'non-interactive': 'non-interactive (claude -p)' },
     resume: 'Resume',
     goToWindow: 'Go to window',
     folderMissing: 'Folder not found',
@@ -73,6 +76,9 @@ const STRINGS = {
     openElsewhereTip: 'clic : sélectionner · déjà ouverte ailleurs',
     open: 'ouverte',
     noMatch: 'Aucune conversation ne correspond.',
+    showHiddenTitle: n => `Afficher les conversations masquées (${n})`,
+    hideHiddenTitle: n => `Masquer les conversations masquées (${n})`,
+    hiddenReasons: { 'no-reply': 'sans réponse', excluded: 'dossier exclu', 'non-interactive': 'non interactive (claude -p)' },
     resume: 'Reprendre',
     goToWindow: 'Aller à la fenêtre',
     folderMissing: 'Dossier introuvable',
@@ -152,45 +158,52 @@ rootStyle.setProperty('--main-alpha', theme.translucent ? 0.82 : 1);
 // (e.g. "Courses/Linux_Admin/exercises").
 const parentOf = p => p.slice(0, p.lastIndexOf('/')) || '/';
 const under = (p, r) => p === r || p.startsWith(r === '/' ? '/' : r + '/');
-for (const s of sessions) s.cwd = s.cwd || home;
-const cwds = [...new Set(sessions.map(s => s.cwd))];
-const rootPath = cwds.every(c => under(c, home)) ? home : '/';
+for (const s of allSessions) s.cwd = s.cwd || home;
+let showHidden = !!initialShowHidden;   // the eye button; remembered in the state
+let sessions, rootPath, dirParent, nodes, links, nodeById;   // set by buildTree()
 
-const children = new Map();
-for (const c of cwds) {
-  for (let p = c; p !== rootPath; p = parentOf(p)) {
-    const q = parentOf(p);
-    if (!children.has(q)) children.set(q, new Set());
-    children.get(q).add(p);
+function buildTree() {
+  sessions = allSessions.filter(s => showHidden || !s.hidden);
+  const cwds = [...new Set(sessions.map(s => s.cwd))];
+  rootPath = cwds.every(c => under(c, home)) ? home : '/';
+
+  const children = new Map();
+  for (const c of cwds) {
+    for (let p = c; p !== rootPath; p = parentOf(p)) {
+      const q = parentOf(p);
+      if (!children.has(q)) children.set(q, new Set());
+      children.get(q).add(p);
+    }
   }
-}
-const cwdSet = new Set(cwds);
-const keep = p => p === rootPath || cwdSet.has(p) || (children.get(p)?.size || 0) >= 2;
-const dirPaths = new Set([rootPath]);
-for (const c of cwds) for (let p = c; ; p = parentOf(p)) { if (keep(p)) dirPaths.add(p); if (p === rootPath) break; }
+  const cwdSet = new Set(cwds);
+  const keep = p => p === rootPath || cwdSet.has(p) || (children.get(p)?.size || 0) >= 2;
+  const dirPaths = new Set([rootPath]);
+  for (const c of cwds) for (let p = c; ; p = parentOf(p)) { if (keep(p)) dirPaths.add(p); if (p === rootPath) break; }
 
-const dirParent = new Map();   // kept folder -> kept parent folder
-for (const d of dirPaths) {
-  if (d === rootPath) continue;
-  let a = parentOf(d);
-  while (!dirPaths.has(a)) a = parentOf(a);
-  dirParent.set(d, a);
-}
+  dirParent = new Map();   // kept folder -> kept parent folder
+  for (const d of dirPaths) {
+    if (d === rootPath) continue;
+    let a = parentOf(d);
+    while (!dirPaths.has(a)) a = parentOf(a);
+    dirParent.set(d, a);
+  }
 
-const nodes = [], links = [], nodeById = new Map();
-for (const d of dirPaths) {
-  const parent = dirParent.get(d);
-  const label = parent == null ? short(d) : d.slice(parent === '/' ? 1 : parent.length + 1);
-  nodes.push({ id: 'd:' + d, kind: 'dir', path: d, label, count: 0 });
-  if (parent != null) links.push({ source: 'd:' + parent, target: 'd:' + d, kind: 'dir' });
+  nodes = []; links = []; nodeById = new Map();
+  for (const d of dirPaths) {
+    const parent = dirParent.get(d);
+    const label = parent == null ? short(d) : d.slice(parent === '/' ? 1 : parent.length + 1);
+    nodes.push({ id: 'd:' + d, kind: 'dir', path: d, label, count: 0 });
+    if (parent != null) links.push({ source: 'd:' + parent, target: 'd:' + d, kind: 'dir' });
+  }
+  for (const s of sessions) {
+    nodes.push({ id: 's:' + s.id, kind: 'session', s });
+    links.push({ source: 'd:' + s.cwd, target: 's:' + s.id, kind: 'session' });
+  }
+  for (const n of nodes) nodeById.set(n.id, n);
+  // folder weight = sessions it contains, subfolders included
+  for (const s of sessions) for (let d = s.cwd; d != null; d = dirParent.get(d)) nodeById.get('d:' + d).count++;
 }
-for (const s of sessions) {
-  nodes.push({ id: 's:' + s.id, kind: 'session', s });
-  links.push({ source: 'd:' + s.cwd, target: 's:' + s.id, kind: 'session' });
-}
-for (const n of nodes) nodeById.set(n.id, n);
-// folder weight = sessions it contains, subfolders included
-for (const s of sessions) for (let d = s.cwd; d != null; d = dirParent.get(d)) nodeById.get('d:' + d).count++;
+buildTree();
 
 const radius = n => n.kind === 'dir' ? 5 + Math.sqrt(n.count) * 1.8 : 2 + Math.sqrt(n.s.user_messages) * 0.8;
 // recent = accent colour, fading to FG_DIM over 30 days
@@ -397,7 +410,8 @@ const listEl = document.getElementById('list');
 const searchEl = document.getElementById('search');
 const statusEl = document.getElementById('status');
 const scopeEl = document.getElementById('scope');
-document.getElementById('count').textContent = sessions.length;
+const countEl = document.getElementById('count');
+countEl.textContent = sessions.length;
 
 const byPlace = (a, b) => short(a).localeCompare(short(b), T.locale);
 
@@ -435,6 +449,7 @@ function itemEl(s) {
   const meta = [ago(s), `${s.user_messages} msg`];
   if (s.git_branch && s.git_branch !== 'HEAD') meta.push(s.git_branch);
   if (s.running) meta.push(T.open);
+  if (s.hidden || s.non_interactive) meta.push(T.hiddenReasons[s.hidden_reason || 'non-interactive']);
   item.append(name, el('div', 'meta', meta.join(' · ')));
 
   const details = el('div', 'details');
@@ -505,6 +520,24 @@ function setScope(path) {
   applyFilters();
 }
 scopeEl.querySelector('button').addEventListener('click', () => setScope(null));
+
+// ---------- eye button: show / hide the hidden conversations ----------
+const eyeBtn = document.getElementById('show-hidden');
+const hiddenCount = allSessions.filter(s => s.hidden).length;
+function showEyeBtn() {
+  eyeBtn.setAttribute('aria-pressed', showHidden);
+  eyeBtn.title = (showHidden ? T.hideHiddenTitle : T.showHiddenTitle)(hiddenCount);
+}
+eyeBtn.addEventListener('click', () => {
+  showHidden = !showHidden;
+  buildTree();
+  fg.graphData({ nodes, links });
+  countEl.textContent = sessions.length;
+  showEyeBtn();
+  applyFilters();
+  window.pywebview?.api.set_show_hidden(showHidden);
+});
+showEyeBtn();
 
 // ---------- light / dark toggle (hidden for a single-variant palette) ----------
 const modeBtn = document.getElementById('mode');
@@ -611,6 +644,7 @@ function applyLanguage(setting) {
   showMode();
   showPaletteBtn();
   showLanguageBtn();
+  showEyeBtn();
   hintEl.textContent = T.hint;
   hintEl.classList.remove('armed');
   render();

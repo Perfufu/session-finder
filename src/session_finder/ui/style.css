@@ -69,8 +69,17 @@ header { padding: 16px 16px 10px; }
 #palette { max-width: 170px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 #mode[hidden] { display: none; }
 #count { color: var(--fg-dim); font-weight: normal; font-size: 12px; margin-left: 6px; }
+.search-row { display: flex; gap: 8px; }
+#show-hidden {
+  display: flex; align-items: center; justify-content: center; flex: none; width: 38px; padding: 0;
+  border: 1px solid rgba(var(--fg-rgb), 0.12); background: rgba(var(--bg-rgb), 0.6);
+  color: var(--fg-dim); border-radius: 10px; cursor: pointer; transition: border-color 150ms;
+}
+#show-hidden:hover { color: var(--fg); border-color: var(--accent); }
+#show-hidden[aria-pressed="true"] { color: var(--accent); border-color: var(--accent); }
+#show-hidden[aria-pressed="true"] .slash { display: none; }
 #search {
-  width: 100%; padding: 9px 12px; border-radius: 10px; outline: none;
+  flex: 1; min-width: 0; padding: 9px 12px; border-radius: 10px; outline: none;
   font: inherit; color: var(--fg);
   background: rgba(var(--bg-rgb), 0.6);
   border: 1px solid rgba(var(--fg-rgb), 0.12);

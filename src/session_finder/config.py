@@ -22,6 +22,7 @@ DEFAULTS = {
         "palette_sh": {"path": "", "active_file": ""},
     },
     "terminal": {"command": ""},
+    "sessions": {"hide_non_interactive": False, "exclude_folders": []},
 }
 
 
@@ -99,6 +100,12 @@ def load(path=None):
         warn(f"unreadable config ({path}): {e} — using default values")
         return copy.deepcopy(DEFAULTS)
     return merge(DEFAULTS, user)
+
+
+def hiding(cfg):
+    """[sessions] options of the config, as index.build_index keyword arguments."""
+    return {"hide_non_interactive": cfg["sessions"]["hide_non_interactive"],
+            "exclude_folders": cfg["sessions"]["exclude_folders"]}
 
 
 def example(name):

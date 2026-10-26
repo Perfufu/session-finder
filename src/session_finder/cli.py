@@ -10,6 +10,7 @@ from pathlib import Path
 
 from . import __version__, config, engines, index, report
 
+HIDDEN_LABEL = {"no-reply": "no reply", "excluded": "excluded folder", "non-interactive": "non-interactive"}
 PALETTE_NAME = re.compile(r"^[A-Za-z0-9_-]+$")  # no "/" nor "..": stays inside palettes/
 
 
@@ -46,7 +47,9 @@ def print_table(sessions):
             print(f"\n{short(current)}{flag}")
         mark = {"custom": "✎", "ai": " ", "prompt": "?"}[s["title_source"]]
         run = f"  ● {s['running']}" if s["running"] else ""
-        hidden = "  (hidden: no reply)" if s["hidden"] else ""
+        hidden = f"  (hidden: {HIDDEN_LABEL[s['hidden_reason']]})" if s["hidden"] else ""
+        if s["non_interactive"]:
+            hidden += "  [claude -p]"
         print(f"  {local_time(s['updated'])}  {s['id'][:8]}  {s['user_messages']:>3} msg  "
               f"{mark} {s['title'][:60]}{run}{hidden}")
     print(f"\n{len(sessions)} sessions  (✎ /rename title, ? no auto title → first message, ● running)")
@@ -114,7 +117,7 @@ def main(argv=None):
         return 0 if ok and icon_ok else 1
 
     if args.table or args.json:
-        sessions = index.build_index(include_hidden=args.all)
+        sessions = index.build_index(include_hidden=args.all, **config.hiding(config.DEFAULTS if args.defaults else config.load()))
         if args.table:
             print_table(sessions)
         else:

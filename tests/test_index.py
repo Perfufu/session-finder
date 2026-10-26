@@ -1,4 +1,5 @@
-from conftest import ID_EMPTY, ID_MAIN, ID_RENAMED, ID_RUNNING
+import pytest
+from conftest import ID_EMPTY, ID_MAIN, ID_RENAMED, ID_RUNNING, assistant, user, write_jsonl
 
 from session_finder import index
 
@@ -67,3 +68,44 @@ def test_cache_reused_then_invalidated(claude, monkeypatch):
 
 def test_missing_claude_folder(tmp_path):
     assert index.build_index(root=tmp_path / "nothing", cache=tmp_path / "c.json") == []
+
+
+@pytest.mark.parametrize("entrypoint, expected", [
+    ("cli", False), ("sdk-cli", True), ("sdk-ts", True), ("sdk-py", True),
+    ("claude-vscode", False), ("something-new", False), (None, False),   # unknown = interactive
+])
+def test_non_interactive_from_entrypoint(tmp_path, entrypoint, expected):
+    extra = {"entrypoint": entrypoint} if entrypoint else {}
+    root = tmp_path / "claude"
+    sid = "55555555-5555-4555-8555-555555555555"
+    write_jsonl(root / "projects" / "-p" / f"{sid}.jsonl",
+                [user("hi", "/p", "2026-01-05T08:00:00Z", **extra), assistant("2026-01-05T08:00:01Z")])
+    s = index.build_index(root=root, cache=tmp_path / "cache" / "index.json")[0]
+    assert s["non_interactive"] is expected
+
+
+def two_sessions(tmp_path):
+    """One interactive session in /work/a/sub, one `claude -p` in /work/job."""
+    root = tmp_path / "claude"
+    for sid, cwd, ep in (("66666666-6666-4666-8666-666666666666", "/work/a/sub", "cli"),
+                         ("77777777-7777-4777-8777-777777777777", "/work/job", "sdk-cli")):
+        write_jsonl(root / "projects" / sid[:4] / f"{sid}.jsonl",
+                    [user("hi", cwd, "2026-01-05T08:00:00Z", entrypoint=ep), assistant("2026-01-05T08:00:01Z")])
+    return root, tmp_path / "cache" / "index.json"
+
+
+def test_non_interactive_shown_by_default_hidden_on_request(tmp_path):
+    root, cache = two_sessions(tmp_path)
+    assert len(index.build_index(root=root, cache=cache)) == 2
+    shown = index.build_index(root=root, cache=cache, hide_non_interactive=True)
+    assert [s["cwd"] for s in shown] == ["/work/a/sub"]
+    everything = index.build_index(root=root, cache=cache, hide_non_interactive=True, include_hidden=True)
+    assert {s["cwd"]: s["hidden_reason"] for s in everything} == {"/work/a/sub": None, "/work/job": "non-interactive"}
+
+
+def test_excluded_folders_cover_subfolders_but_not_lookalikes(tmp_path):
+    root, cache = two_sessions(tmp_path)
+    got = lambda folders: [s["cwd"] for s in index.build_index(root=root, cache=cache, exclude_folders=folders)]
+    assert got(["/work/a"]) == ["/work/job"]            # subfolder covered
+    assert got(["/work/a/su", "/work/jo"]) == ["/work/a/sub", "/work/job"]   # prefix of a name ≠ parent folder
+    assert got([42, "", "/work/job/"]) == ["/work/a/sub"]   # junk ignored, trailing slash fine
