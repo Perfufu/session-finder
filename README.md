@@ -20,8 +20,11 @@ session-finder
 
 # Update (later)
 uv tool upgrade session-finder
+```
 
-# Uninstall (later)
+Uninstall, later (separate block on purpose, so copying the one above never removes it):
+
+```sh
 session-finder --uninstall && uv tool uninstall session-finder
 ```
 
