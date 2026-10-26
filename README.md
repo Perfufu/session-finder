@@ -58,10 +58,10 @@ Runs it once with the bundled Qt engine, without installing anything on your `PA
 # 1. uv, only if missing (official installer, installs to ~/.local/bin)
 command -v uv >/dev/null || curl -LsSf https://astral.sh/uv/install.sh | sh
 
-# 2. Session Finder
+# 2. Session Finder (installs the command only: no launcher entry yet, see step 3)
 uv tool install "session-finder[qt] @ git+https://github.com/Perfufu/session-finder"
 
-# 3. Optional: launcher entry + icon (fuzzel, rofi, GNOME/KDE menus…), see "Launcher entry" below
+# 3. Optional, not automatic: launcher entry + icon (fuzzel, rofi, GNOME/KDE menus…), see "Launcher entry" below
 session-finder --install-desktop
 
 session-finder
